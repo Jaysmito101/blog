@@ -1,0 +1,111 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' 
+  workflow_dispatch:      
+
+jobs:
+  sync_repository:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git Identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Add Upstream and Fetch
+        run: |
+          git remote add upstream https://git.jaysmito.dev/jaysmito101/blog.git || echo "Remote upstream already exists"
+          # Fetch upstream branches
+          git fetch upstream
+
+      - name: Sync Branches and Update History
+        shell: bash
+        run: |
+          HISTORY_FILE=".synchistory"
+          # Ensure file exists
+          touch "$HISTORY_FILE"
+          
+          UPDATES_LOG=""
+          CHANGES_MADE="false"
+          CURRENT_BRANCH=$(git branch --show-current)
+          
+          echo "Starting sync at $(date)"
+          
+          # Get list of remote branches from upstream
+          # Remove 'upstream/' prefix and 'HEAD'
+          # We use generic grep to robustly find branches
+          REMOTE_BRANCHES=$(git branch -r | grep 'upstream/' | grep -v 'HEAD' | sed 's/upstream\///' | xargs)
+          
+          for branch in $REMOTE_BRANCHES; do
+            branch=$(echo "$branch" | xargs) # Trim whitespace
+            echo "Processing branch: $branch"
+            
+            # Check if branch exists locally
+            if git show-ref --verify --quiet "refs/heads/$branch"; then 
+              echo "  Local branch exists."
+              
+              # Compare hashes to trigger update only if needed
+              LOCAL_HASH=$(git rev-parse "refs/heads/$branch")
+              REMOTE_HASH=$(git rev-parse "refs/remotes/upstream/$branch")
+              
+              if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
+                echo "  Updates found. Syncing $branch..."
+                
+                # Checkout and merge
+                git checkout "$branch"
+                if git merge "upstream/$branch" --no-edit; then
+                    COMMIT_INFO=$(git log -1 --format='%h - %s (%an)')
+                    TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+                    ENTRY="[$TIME] Updated branch '$branch' to $COMMIT_INFO"
+                    UPDATES_LOG="${UPDATES_LOG}${ENTRY}\n"
+                    CHANGES_MADE="true"
+                else
+                    echo "  Merge conflict on $branch. Aborting merge for this branch."
+                    git merge --abort
+                fi
+              else
+                echo "  Branch $branch is up to date."
+              fi
+            else
+              echo "  Creating new local branch: $branch"
+              if git checkout -b "$branch" "upstream/$branch"; then
+                  COMMIT_INFO=$(git log -1 --format='%h - %s (%an)')
+                  TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+                  ENTRY="[$TIME] Created new branch '$branch' at $COMMIT_INFO"
+                  UPDATES_LOG="${UPDATES_LOG}${ENTRY}\n"
+                  CHANGES_MADE="true"
+              else
+                  echo "  Failed to create branch $branch."
+              fi
+            fi
+          done
+          
+          # Switch back to the original branch to update history log
+          git checkout "$CURRENT_BRANCH"
+          
+          if [ "$CHANGES_MADE" = "true" ]; then
+            echo -e "$UPDATES_LOG" >> "$HISTORY_FILE"
+            
+            # Commit the history file
+            git add "$HISTORY_FILE"
+            if git diff --staged --quiet; then
+                 echo "No changes to .synchistory detected."
+            else
+                 git commit -m "Update .synchistory with sync details [skip ci]"
+                 echo "Pushing all branches..."
+                 git push origin --all
+            fi
+          else
+            echo "No updates from upstream."
+          fi
