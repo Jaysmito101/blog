@@ -9,8 +9,6 @@ tags: ["GameDev", "algorithm", "Beginner Developers"]
 cover: ""
 ---
 
-# Perlin's Noise Algorithm
-
 # What is Noise?
 
 Well if you have tried to learn about anything in procedural generation one thing you must have come across is **noise**! Now, what exactly is it?

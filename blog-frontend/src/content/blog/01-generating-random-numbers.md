@@ -6,8 +6,6 @@ tags: ["random", "C++", "Programming Blogs"]
 cover: ""
 ---
 
-# Generating Random Numbers?
-
 Well before we dive into procedural generation we need to know what exactly is procedural generation, right? Well procedural generation is letting the computer generate something based on certain parameters we give it as an input.
 
 Now where do we need randomness? Or do we really need randomness for procedural generation?
