@@ -61,7 +61,7 @@ I can't answer it just yet, so let's just follow it blindly for now. In the futu
 
 Alright now, what about the noise function?
 
-Let's just try and use our [rand() function from the previous article](https://jaysmito101.hashnode.dev/generating-random-numbers) and see how it looks.
+Let's just try and use our [rand() function from the previous article](/blog/01-generating-random-numbers) and see how it looks.
 
 ```c
 float noise(float x, float y)
@@ -74,7 +74,7 @@ NOTE: _We are using the x and y coordinates as the seed here._
 
 The output:
 
-![new.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1668182872810/_E7r4TPNf.png align="center")
+![new.png](../../assets/blog/perlin-noise-random.png)
 
 Cool right?
 
@@ -90,7 +90,7 @@ So, what do I mean by interesting?
 
 Let's see,
 
-![new.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1668183567188/g_vS4xODL.png align="center")
+![new.png](../../assets/blog/perlin-noise-coherent.png)
 
 So, it seems a bit more interesting, right?
 
@@ -122,7 +122,7 @@ Alright, getting into the algorithm.
 
 So, we know that the input to our noise function will be 2 numbers on the 2D plane.
 
-![](https://cdn.hashnode.com/res/hashnode/image/upload/v1670515737706/dQ5e5qrND.png align="center")
+![](../../assets/blog/perlin-noise-grid.png)
 
 So, as you can see from the above graph, every point in the 2D plane is inside a square whose corners coordinates are the nearest integers to the coordinates of the point.
 
@@ -333,7 +333,7 @@ Again, try to ignore why we are doing this now. I will make a separate article a
 
 Now that is out of the way, let's see what this looks like.
 
-![](https://cdn.hashnode.com/res/hashnode/image/upload/v1678034710861/cfbcb99d-d613-4b4c-a0f8-b7b39640df5a.png align="center")
+![](../../assets/blog/perlin-noise-result-1.png)
 
 Well, that's ok.
 
@@ -347,7 +347,7 @@ $$y = x^2 ( 3 - 2x)$$
 
 This looks like,
 
-![](https://cdn.hashnode.com/res/hashnode/image/upload/v1678035086556/d0fd9477-e3e5-40e3-9a75-22b4d08b8558.png align="center")
+![](../../assets/blog/perlin-noise-curve.png)
 
 Now, all we need to focus on is the \[0, 1\] range as our `rx0` and `ry0` will always be within that range. We can see that in that range this function is a smooth S-shaped curve.
 
@@ -361,7 +361,7 @@ return Lerp(SCurve(ry0), a, b);
 
 Let's see how this looks.
 
-![](https://cdn.hashnode.com/res/hashnode/image/upload/v1678035292017/5d2c3854-aa04-4d8a-ba31-34673d70477a.png align="center")
+![](../../assets/blog/perlin-noise-result-2.png)
 
 Well, that is the original Perlin noise!
 

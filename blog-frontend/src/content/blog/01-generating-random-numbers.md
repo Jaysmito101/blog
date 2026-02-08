@@ -77,7 +77,7 @@ $$
 
 It looks like:
 
-![Screenshot (575).png](https://cdn.hashnode.com/res/hashnode/image/upload/v1667231020158/aZ3Deqn6G.png align="center")
+![Screenshot (575).png](../../assets/blog/random-sin-graph.png)
 
 So here you can see it quite random in the range `[-0.05, 0.05]`.
 
