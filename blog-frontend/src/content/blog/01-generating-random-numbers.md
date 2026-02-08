@@ -70,7 +70,7 @@ What's the simplest one that comes to your mind?
 The simplest such function that comes to my mind is:
 
 $$
-f(x) = \sin \( \frac{1}{x} \)
+f(x) = \sin ( \frac{1}{x} )
 $$
 
 It looks like:
@@ -109,7 +109,7 @@ What is the easiest way to do it? -> `sin` or `cos`
 So our new function becomes:
 
 $$
-f(x) = \sin \( \frac{1}{ 0.05 \cos x } \)
+f(x) = \sin ( \frac{1}{ 0.05 \cos x } )
 $$
 
 Lastly one thing is this functions numbers in range `[-1.0, 1.0]` but we want `[0.0, 1.0]` there are several ways to map this but lets again choose the easiest way -> `abs`
