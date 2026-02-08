@@ -6,15 +6,32 @@ import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 
-type Props = CollectionEntry<'blog'>['data'];
+import type { MarkdownHeading } from 'astro';
 
-const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+type Props = CollectionEntry<'blog'>['data'] & { headings?: MarkdownHeading[] };
+
+const { title, description, pubDate, updatedDate, heroImage, headings } = Astro.props;
 ---
 
 <html lang="en">
   <head>
     <BaseHead title={title} description={description} />
     <style>
+      /* Mobile First Styles */
+      .layout-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        position: relative;
+        max-width: 100%;
+      }
+      .toc-sidebar {
+        display: none; /* hidden on mobile */
+      }
+      .content-column {
+        width: 100%;
+        min-width: 0; /* important for grid/flex child to shrink */
+      }
       .hero-image {
         width: 100%;
       }
@@ -47,37 +64,97 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
       .last-updated-on {
         font-style: italic;
       }
+      
+      @media (min-width: 1100px) {
+        .layout-container {
+             display: grid;
+             grid-template-columns: 1fr 300px; /* 1fr will now expand to fill the available space (up to 1400px - 300px - gap) */
+             align-items: start;
+        }
+        .toc-sidebar {
+            display: block;
+            position: sticky;
+            top: 2rem;
+            height: max-content;
+            max-height: calc(100vh - 4rem);
+            overflow-y: auto;
+            border-left: 1px solid var(--blockquote-border);
+            padding-left: 1.5rem;
+        }
+        .toc-sidebar h2 {
+            font-size: 1rem;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: var(--heading-color);
+        }
+        .toc-sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .toc-sidebar li {
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .toc-sidebar a {
+            color: var(--sidebar-link);
+            text-decoration: none;
+            display: block;
+            line-height: 1.4;
+        }
+        .toc-sidebar a:hover {
+            color: var(--link-color);
+        }
+        .toc-sidebar .toc-depth-2 { margin-left: 0; }
+        .toc-sidebar .toc-depth-3 { margin-left: 1rem; }
+        .toc-sidebar .toc-depth-4 { margin-left: 2rem; }
+      }
     </style>
   </head>
 
   <body>
     <Header />
     <main>
-      <article>
-        <div class="hero-image">
-          {
-            heroImage && (
-              <Image width={1020} height={510} src={heroImage} alt="" />
-            )
-          }
-        </div>
-        <div class="prose">
-          <div class="title">
-            <div class="date">
-              <FormattedDate date={pubDate} />
+      <article class="layout-container">
+        <div class="content-column">
+            <div class="hero-image">
               {
-                updatedDate && (
-                  <div class="last-updated-on">
-                    Last updated on <FormattedDate date={updatedDate} />
-                  </div>
+                heroImage && (
+                  <Image width={1020} height={510} src={heroImage} alt="" />
                 )
               }
             </div>
-            <h1>{title}</h1>
-            <hr />
-          </div>
-          <slot />
+            <div class="prose">
+              <div class="title">
+                <div class="date">
+                  <FormattedDate date={pubDate} />
+                  {
+                    updatedDate && (
+                      <div class="last-updated-on">
+                        Last updated on <FormattedDate date={updatedDate} />
+                      </div>
+                    )
+                  }
+                </div>
+                <h1>{title}</h1>
+                <hr />
+              </div>
+              <slot />
+            </div>
         </div>
+        
+        {headings && headings.length > 0 && (
+            <aside class="toc-sidebar">
+                <h2>Table of Contents</h2>
+                <ul>
+                    {headings.map((heading: any) => (
+                        <li class={`toc-depth-${heading.depth}`}>
+                            <a href={`#${heading.slug}`}>{heading.text}</a>
+                        </li>
+                    ))}
+                </ul>
+            </aside>
+        )}
       </article>
     </main>
   </body>

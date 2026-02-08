@@ -117,9 +117,6 @@ const posts = (await getCollection('blog'))
   }
   .branding {
     margin-bottom: 2em;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
   }
   .search-box {
     display: flex;
@@ -144,13 +141,13 @@ const posts = (await getCollection('blog'))
   h3 {
     font-size: 0.85em;
     text-transform: uppercase;
-    color: #666;
+    color: #ccc; /* Improved contrast */
     margin-bottom: 0.5em;
     letter-spacing: 0.05em;
     font-weight: normal;
   }
   h3 a {
-    color: #666;
+    color: #ccc; /* Improved contrast */
     text-decoration: none;
   }
   h3 a:hover {
@@ -159,12 +156,12 @@ const posts = (await getCollection('blog'))
   }
   p {
     font-size: 0.9em;
-    color: #999;
+    color: #bbb; /* Improved contrast */
     margin: 0 0 1em 0;
     line-height: 1.5;
   }
   .author-name {
-    color: #ccc;
+    color: #fff; /* Improved contrast */
     text-decoration: none;
   }
   .author-name:hover {
@@ -186,31 +183,39 @@ const posts = (await getCollection('blog'))
   }
   li {
     margin-bottom: 0.3em;
-    color: #666;
+    color: #bbb; /* Improved contrast */
   }
   li a {
-    color: #ccc;
+    color: #ddd; /* Improved contrast */
     text-decoration: none;
   }
   li a:hover {
     color: #fff;
     text-decoration: underline;
   }
-  /* .branding style removed from here as it is redefined above */
 
+  /* Theme Toggle fixed to top-right */
   #theme-toggle {
-    background: none;
-    border: none;
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    z-index: 100;
+    background: var(--content-bg); /* Use content bg to stand out or blend with main area? */
+    border: 1px solid var(--blockquote-border);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
     cursor: pointer;
-    color: #ccc;
+    color: var(--content-text);
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   }
   
   #theme-toggle:hover {
-    color: #fff;
+    background: var(--code-bg);
   }
 
   @media (max-width: 768px) {
@@ -221,6 +226,12 @@ const posts = (await getCollection('blog'))
     }
     .branding {
       margin-bottom: 0;
+    }
+    #theme-toggle {
+        /* On mobile, keep it relative or fixed? Fixed is fine, or move into header. 
+           Let's keep it fixed but adjust position */
+        top: 1rem;
+        right: 1rem;
     }
     h1 {
       font-size: 1.25em;
@@ -236,10 +247,10 @@ const posts = (await getCollection('blog'))
       display: inline-block;
       margin-right: 1.5em;
       font-size: 1em;
-      padding: 0.5em 0; /* easier to tap */
+      padding: 0.5em 0; 
     }
     li {
-      padding: 0.5em 0; /* easier to tap */
+      padding: 0.5em 0; 
       border-bottom: 1px solid #eee;
     }
   }
