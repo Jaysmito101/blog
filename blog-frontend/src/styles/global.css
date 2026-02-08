@@ -6,11 +6,31 @@
   --sidebar-link-hover: #fff;
   --content-bg: #fff;
   --content-text: #333;
+  --heading-color: #000;
   --link-color: #0066cc;
   --link-hover: #004499;
+  --code-bg: #f4f4f4;
+  --blockquote-color: #666;
+  --blockquote-border: #ccc;
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  
   --font-body:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
     sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+}
+
+:root.dark {
+  --content-bg: #121212;
+  --content-text: #e0e0e0;
+  --heading-color: #ffffff;
+  --link-color: #66b3ff;
+  --link-hover: #99ccff;
+  --code-bg: #1e1e1e;
+  --blockquote-color: #a0a0a0;
+  --blockquote-border: #444;
+  
+  /* Sidebar is already dark, but we can tweak if needed. 
+     Currently keeping it as defined in root (which was dark). */
 }
 
 @font-face {
@@ -70,7 +90,7 @@ h3,
 h4,
 h5,
 h6 {
-  color: #000;
+  color: var(--heading-color);
   line-height: 1.2;
   margin-top: 1.5em;
   margin-bottom: 0.5em;
@@ -106,14 +126,14 @@ img {
 
 code {
   padding: 2px 5px;
-  background-color: #f4f4f4;
+  background-color: var(--code-bg);
   border-radius: 2px;
   font-family: monospace;
 }
 
 pre {
   padding: 1.5em;
-  background-color: #f4f4f4;
+  background-color: var(--code-bg);
   border-radius: 4px;
   overflow-x: auto;
 }
@@ -123,15 +143,15 @@ pre > code {
 }
 
 blockquote {
-  border-left: 4px solid #ccc;
+  border-left: 4px solid var(--blockquote-border);
   padding-left: 1em;
   margin-left: 0;
-  color: #666;
+  color: var(--blockquote-color);
 }
 
 hr {
   border: none;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--blockquote-border); /* reusing border color for HR */
   margin: 2em 0;
 }
 
@@ -156,7 +176,7 @@ hr {
     position: relative;
     height: auto;
     padding: 1em;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--sidebar-text); /* visible border in mobile */
   }
   main {
     margin-left: 0;
@@ -166,3 +186,4 @@ hr {
     display: none;
   }
 }
+

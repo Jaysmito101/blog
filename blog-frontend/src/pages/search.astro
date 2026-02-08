@@ -1,0 +1,147 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const postsData = JSON.stringify(posts.map(post => ({
+    id: post.id,
+    title: post.data.title,
+    description: post.data.description,
+    pubDate: post.data.pubDate
+})));
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={`Search | ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+		<style>
+            main {
+                width: 100%;
+                max-width: 900px;
+                margin: 0 auto;
+                padding: 2em;
+            }
+            .search-container {
+                margin-bottom: 2em;
+            }
+            #search-input {
+                width: 100%;
+                padding: 10px 15px;
+                font-size: 1.1em;
+                border: 2px solid var(--sidebar-link);
+                border-radius: 4px;
+                background: var(--content-bg);
+                color: var(--content-text);
+                outline: none;
+            }
+            #search-input:focus {
+                border-color: var(--link-color);
+            }
+            #search-results {
+                list-style: none;
+                padding: 0;
+            }
+            .search-result-item {
+                margin-bottom: 2em;
+                padding-bottom: 1em;
+                border-bottom: 1px solid var(--blockquote-border);
+            }
+            .search-result-item a {
+                font-size: 1.5em;
+                font-weight: bold;
+                display: block;
+                margin-bottom: 0.25em;
+            }
+            .search-result-date {
+                font-size: 0.9em;
+                color: var(--sidebar-text);
+                margin-bottom: 0.5em;
+            }
+            .search-result-desc {
+                color: var(--content-text);
+            }
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+            <h1>Search</h1>
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Search titles and descriptions..." autofocus />
+            </div>
+            <p id="result-count"></p>
+            <ul id="search-results"></ul>
+		</main>
+        
+        <script define:vars={{ postsData }}>
+            const posts = JSON.parse(postsData);
+            const searchInput = document.getElementById('search-input');
+            const searchResults = document.getElementById('search-results');
+            const resultCount = document.getElementById('result-count');
+
+            function formatDate(dateStr) {
+                return new Date(dateStr).toLocaleDateString('en-us', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                });
+            }
+
+            function renderResults(results) {
+                searchResults.innerHTML = '';
+                if (results.length === 0) {
+                    resultCount.textContent = 'No results found.';
+                    return;
+                }
+                
+                resultCount.textContent = `Found ${results.length} post${results.length === 1 ? '' : 's'}.`;
+
+                results.forEach(post => {
+                    const li = document.createElement('li');
+                    li.className = 'search-result-item';
+                    
+                    const a = document.createElement('a');
+                    a.href = `/blog/${post.id}/`;
+                    a.textContent = post.title;
+                    
+                    const date = document.createElement('div');
+                    date.className = 'search-result-date';
+                    date.textContent = formatDate(post.pubDate);
+                    
+                    const p = document.createElement('p');
+                    p.className = 'search-result-desc';
+                    p.textContent = post.description;
+                    
+                    li.appendChild(a);
+                    li.appendChild(date);
+                    li.appendChild(p);
+                    searchResults.appendChild(li);
+                });
+            }
+
+            // Initial render (all posts or empty? let's show all posts initially or empty)
+            // Showing all posts initially is good for discovery
+            renderResults(posts);
+
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                if (!term) {
+                    renderResults(posts);
+                    return;
+                }
+
+                const filtered = posts.filter(post => 
+                    post.title.toLowerCase().includes(term) || 
+                    post.description.toLowerCase().includes(term)
+                );
+                renderResults(filtered);
+            });
+        </script>
+	</body>
+</html>
