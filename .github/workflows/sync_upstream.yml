@@ -2,19 +2,20 @@ name: Sync Upstream
 
 on:
   schedule:
-    - cron: '0 */6 * * *' 
-  workflow_dispatch:      
+    - cron: '0 */6 * * *'  # Runs every 6 hours
+  workflow_dispatch:      # Allows manual trigger
 
 jobs:
   sync_repository:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+      
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.ref_name }} # Explicitly checkout the branch, not detached head
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -36,15 +37,16 @@ jobs:
           # Ensure file exists
           touch "$HISTORY_FILE"
           
+          DEFAULT_BRANCH="${{ github.ref_name }}"
+          echo "Default branch: $DEFAULT_BRANCH"
+          
           UPDATES_LOG=""
           CHANGES_MADE="false"
-          CURRENT_BRANCH=$(git branch --show-current)
           
           echo "Starting sync at $(date)"
           
           # Get list of remote branches from upstream
           # Remove 'upstream/' prefix and 'HEAD'
-          # We use generic grep to robustly find branches
           REMOTE_BRANCHES=$(git branch -r | grep 'upstream/' | grep -v 'HEAD' | sed 's/upstream\///' | xargs)
           
           for branch in $REMOTE_BRANCHES; do
@@ -55,14 +57,12 @@ jobs:
             if git show-ref --verify --quiet "refs/heads/$branch"; then 
               echo "  Local branch exists."
               
-              # Compare hashes to trigger update only if needed
               LOCAL_HASH=$(git rev-parse "refs/heads/$branch")
               REMOTE_HASH=$(git rev-parse "refs/remotes/upstream/$branch")
               
               if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
-                echo "  Updates found. Syncing $branch..."
+                echo "  Updates found for $branch."
                 
-                # Checkout and merge
                 git checkout "$branch"
                 if git merge "upstream/$branch" --no-edit; then
                     COMMIT_INFO=$(git log -1 --format='%h - %s (%an)')
@@ -71,7 +71,7 @@ jobs:
                     UPDATES_LOG="${UPDATES_LOG}${ENTRY}\n"
                     CHANGES_MADE="true"
                 else
-                    echo "  Merge conflict on $branch. Aborting merge for this branch."
+                    echo "  Merge conflict on $branch. Aborting merge."
                     git merge --abort
                 fi
               else
@@ -79,6 +79,7 @@ jobs:
               fi
             else
               echo "  Creating new local branch: $branch"
+              # Create and track
               if git checkout -b "$branch" "upstream/$branch"; then
                   COMMIT_INFO=$(git log -1 --format='%h - %s (%an)')
                   TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -91,21 +92,28 @@ jobs:
             fi
           done
           
-          # Switch back to the original branch to update history log
-          git checkout "$CURRENT_BRANCH"
+          # Return to default branch to record history
+          git checkout "$DEFAULT_BRANCH"
           
           if [ "$CHANGES_MADE" = "true" ]; then
-            echo -e "$UPDATES_LOG" >> "$HISTORY_FILE"
-            
-            # Commit the history file
-            git add "$HISTORY_FILE"
-            if git diff --staged --quiet; then
-                 echo "No changes to .synchistory detected."
-            else
-                 git commit -m "Update .synchistory with sync details [skip ci]"
-                 echo "Pushing all branches..."
-                 git push origin --all
+            # Verify we actually have content to write
+            if [ -n "$UPDATES_LOG" ]; then
+                echo -e "$UPDATES_LOG" >> "$HISTORY_FILE"
+                
+                # Check if there are changes to commit
+                git add "$HISTORY_FILE"
+                
+                # Check status
+                if git diff --staged --quiet; then
+                     echo "No changes to .synchistory detected."
+                else
+                     git commit -m "Update .synchistory with sync details [skip ci]"
+                fi
+                
+                # Push changes if any branches were updated or history file was updated
+                echo "Pushing all branches..."
+                git push origin --all
             fi
           else
-            echo "No updates from upstream."
+            echo "No updates from upstream. Exiting without commit."
           fi
