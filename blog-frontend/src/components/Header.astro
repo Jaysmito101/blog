@@ -1,0 +1,102 @@
+---
+import HeaderLink from "./HeaderLink.astro";
+import { SITE_TITLE } from "../consts";
+import { getCollection } from "astro:content";
+
+const posts = (await getCollection("blog"))
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+	.slice(0, 5);
+---
+
+<header>
+	<nav>
+		<div class="branding">
+			<h1><a href="/">{SITE_TITLE}</a></h1>
+		</div>
+
+		<div class="section author">
+			<h3>Author</h3>
+			<p>
+				<strong>Jaysmito101</strong> (email, twitter)
+			</p>
+		</div>
+
+		<div class="section navigation">
+			<h3>Work, projects and publications</h3>
+			<div class="links">
+				<HeaderLink href="/">Home</HeaderLink>
+				<HeaderLink href="/blog">Blog</HeaderLink>
+				<HeaderLink href="/about">About</HeaderLink>
+				<HeaderLink
+					href="https://github.com/jaysmito101"
+					target="_blank">GitHub</HeaderLink
+				>
+			</div>
+		</div>
+
+		<div class="section posts">
+			<h3>Posts</h3>
+			<p>
+				If you like this blog, you should follow it via <a
+					href="/rss.xml">RSS</a
+				> and read <a href="/blog">older posts</a>. Here are the recent
+				posts.
+			</p>
+			<ul>
+				{
+					posts.map((post) => (
+						<li>
+							<a href={`/blog/${post.id}/`}>{post.data.title}</a>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+	</nav>
+</header>
+<style>
+	h1 {
+		font-size: 1.5em;
+		margin: 0 0 1em 0;
+		line-height: 1.2;
+	}
+	h1 a {
+		color: #fff;
+		text-decoration: none;
+	}
+	.section {
+		margin-bottom: 2em;
+	}
+	h3 {
+		font-size: 0.85em;
+		text-transform: uppercase;
+		color: #666;
+		margin-bottom: 0.5em;
+		letter-spacing: 0.05em;
+		font-weight: normal;
+	}
+	p {
+		font-size: 0.9em;
+		color: #999;
+		margin: 0 0 1em 0;
+	}
+	ul {
+		list-style: disc;
+		padding-left: 1.2em;
+		margin: 0;
+	}
+	li {
+		margin-bottom: 0.3em;
+		color: #666; /* Bullet color */
+	}
+	li a {
+		color: #ccc;
+	}
+	li a:hover {
+		color: #fff;
+		text-decoration: underline;
+	}
+	.branding {
+		margin-bottom: 3em;
+	}
+</style>
