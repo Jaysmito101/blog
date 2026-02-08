@@ -1,0 +1,5 @@
+onstart=cd blog-frontend && bun x serve dist -p 4321
+onupdate=cd blog-frontend && bun install
+onbuild=cd blog-frontend && bun run build
+onstop=
+port=4321
