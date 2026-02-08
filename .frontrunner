@@ -3,3 +3,4 @@ onupdate=cd blog-frontend && bun install
 onbuild=cd blog-frontend && bun run build
 onstop=
 port=4321
+app_url=https://blog.jaysmito.dev
