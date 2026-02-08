@@ -1,99 +1,91 @@
 ---
-import BaseHead from "../components/BaseHead.astro";
-import Footer from "../components/Footer.astro";
-import Header from "../components/Header.astro";
-import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
-import { getCollection } from "astro:content";
-import FormattedDate from "../components/FormattedDate.astro";
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { getCollection } from 'astro:content';
+import FormattedDate from '../components/FormattedDate.astro';
 
-const posts = (await getCollection("blog")).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
 ---
 
 <!doctype html>
 <html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<style>
-			main {
-				max-width: 900px;
-			}
-			.intro {
-				margin-bottom: 3em;
-				padding-bottom: 2em;
-				border-bottom: 1px solid #eee;
-			}
-			.intro p {
-				font-size: 1.1em;
-				color: #555;
-			}
-			ul {
-				list-style-type: none;
-				padding: 0;
-			}
-			li {
-				margin-bottom: 2.5em;
-			}
-			.post-header {
-				font-size: 1.25em;
-				font-weight: bold;
-				margin-bottom: 0.5em;
-			}
-			.post-header a {
-				color: var(--link-color); /* Blue */
-			}
-			.post-date {
-				font-weight: normal;
-				color: #666; /* Gray */
-				margin-right: 0.5em;
-			}
-			.description {
-				color: #555;
-				font-size: 1em;
-				line-height: 1.5;
-			}
-		</style>
-	</head>
-	<body>
-		<Header />
-		<main>
-			<section class="intro">
-				<p>
-					My name is <strong>Jaysmito101</strong> and this is my blog where
-					I write about computer graphics, optimization, programming languages
-					and related topics.
-				</p>
-				<p>
-					If you like this blog, you should follow it via <a
-						href="/rss.xml">RSS</a
-					> and read <a href="/blog">older posts</a>. Here are the
-					recent posts.
-				</p>
-			</section>
-			<section>
-				<ul>
-					{
-						posts.map((post) => (
-							<li>
-								<div class="post-header">
-									<span class="post-date">
-										<FormattedDate
-											date={post.data.pubDate}
-										/>
-									</span>
-									<a href={`/blog/${post.id}/`}>
-										{post.data.title}
-									</a>
-								</div>
-								<div class="description">
-									{post.data.description}
-								</div>
-							</li>
-						))
-					}
-				</ul>
-			</section>
-		</main>
-	</body>
+  <head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+    <style>
+      main {
+        max-width: 900px;
+      }
+      .intro {
+        margin-bottom: 3em;
+        padding-bottom: 2em;
+        border-bottom: 1px solid #eee;
+      }
+      .intro p {
+        font-size: 1.1em;
+        color: #555;
+      }
+      ul {
+        list-style-type: none;
+        padding: 0;
+      }
+      li {
+        margin-bottom: 2.5em;
+      }
+      .post-header {
+        font-size: 1.25em;
+        font-weight: bold;
+        margin-bottom: 0.5em;
+      }
+      .post-header a {
+        color: var(--link-color); /* Blue */
+      }
+      .post-date {
+        font-weight: normal;
+        color: #666; /* Gray */
+        margin-right: 0.5em;
+      }
+      .description {
+        color: #555;
+        font-size: 1em;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <Header />
+    <main>
+      <section class="intro">
+        <p>
+          My name is <strong>Jaysmito Mukherjee</strong> and this is my blog where
+          I write about gamedev, computer graphics, multimedia programming, low level
+          optimizations, color science and related topics.
+        </p>
+        <p>
+          If you like this blog, you should follow it via <a href="/rss.xml"
+            >RSS</a
+          > and read <a href="/blog">older posts</a>. Here are the recent posts.
+        </p>
+      </section>
+      <section>
+        <ul>
+          {
+            posts.map((post) => (
+              <li>
+                <div class="post-header">
+                  <span class="post-date">
+                    <FormattedDate date={post.data.pubDate} />
+                  </span>
+                  <a href={`/blog/${post.id}/`}>{post.data.title}</a>
+                </div>
+                <div class="description">{post.data.description}</div>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </main>
+  </body>
 </html>

@@ -1,102 +1,154 @@
 ---
-import HeaderLink from "./HeaderLink.astro";
-import { SITE_TITLE } from "../consts";
-import { getCollection } from "astro:content";
+import { SITE_TITLE } from '../consts';
+import { getCollection } from 'astro:content';
 
-const posts = (await getCollection("blog"))
-	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-	.slice(0, 5);
+const posts = (await getCollection('blog'))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 5);
 ---
 
 <header>
-	<nav>
-		<div class="branding">
-			<h1><a href="/">{SITE_TITLE}</a></h1>
-		</div>
+  <nav>
+    <div class="branding">
+      <h1><a href="/">{SITE_TITLE}</a></h1>
+    </div>
 
-		<div class="section author">
-			<h3>Author</h3>
-			<p>
-				<strong>Jaysmito101</strong> (email, twitter)
-			</p>
-		</div>
+    <div class="section author">
+      <h3>Author</h3>
+      <p>
+        <strong
+          ><a href="/about" class="author-name">Jaysmito Mukherjee</a></strong
+        >
+        <a href="/about" class="author-email">jaysmito101@gmail.com</a>
+      </p>
+    </div>
 
-		<div class="section navigation">
-			<h3>Work, projects and publications</h3>
-			<div class="links">
-				<HeaderLink href="/">Home</HeaderLink>
-				<HeaderLink href="/blog">Blog</HeaderLink>
-				<HeaderLink href="/about">About</HeaderLink>
-				<HeaderLink
-					href="https://github.com/jaysmito101"
-					target="_blank">GitHub</HeaderLink
-				>
-			</div>
-		</div>
+    <div class="section navigation">
+      <h3><a href="/projects">Work, projects and publications</a></h3>
+      <h3>
+        <a href="https://github.com/jaysmito101" target="_blank">GitHub</a>
+      </h3>
+    </div>
 
-		<div class="section posts">
-			<h3>Posts</h3>
-			<p>
-				If you like this blog, you should follow it via <a
-					href="/rss.xml">RSS</a
-				> and read <a href="/blog">older posts</a>. Here are the recent
-				posts.
-			</p>
-			<ul>
-				{
-					posts.map((post) => (
-						<li>
-							<a href={`/blog/${post.id}/`}>{post.data.title}</a>
-						</li>
-					))
-				}
-			</ul>
-		</div>
-	</nav>
+    <div class="section posts">
+      <h3>Posts</h3>
+      <p>
+        If you like this blog, you should follow it via <a href="/rss.xml"
+          >RSS</a
+        > and read <a href="/blog">older posts</a>. Here are the recent posts.
+      </p>
+      <ul>
+        {
+          posts.map((post) => (
+            <li>
+              <a href={`/blog/${post.id}/`}>{post.data.title}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </nav>
 </header>
 <style>
-	h1 {
-		font-size: 1.5em;
-		margin: 0 0 1em 0;
-		line-height: 1.2;
-	}
-	h1 a {
-		color: #fff;
-		text-decoration: none;
-	}
-	.section {
-		margin-bottom: 2em;
-	}
-	h3 {
-		font-size: 0.85em;
-		text-transform: uppercase;
-		color: #666;
-		margin-bottom: 0.5em;
-		letter-spacing: 0.05em;
-		font-weight: normal;
-	}
-	p {
-		font-size: 0.9em;
-		color: #999;
-		margin: 0 0 1em 0;
-	}
-	ul {
-		list-style: disc;
-		padding-left: 1.2em;
-		margin: 0;
-	}
-	li {
-		margin-bottom: 0.3em;
-		color: #666; /* Bullet color */
-	}
-	li a {
-		color: #ccc;
-	}
-	li a:hover {
-		color: #fff;
-		text-decoration: underline;
-	}
-	.branding {
-		margin-bottom: 3em;
-	}
+  h1 {
+    font-size: 1.5em;
+    margin: 0 0 1em 0;
+    line-height: 1.2;
+  }
+  h1 a {
+    color: #fff;
+    text-decoration: none;
+  }
+  .section {
+    margin-bottom: 2em;
+  }
+  h3 {
+    font-size: 0.85em;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 0.5em;
+    letter-spacing: 0.05em;
+    font-weight: normal;
+  }
+  h3 a {
+    color: #666;
+    text-decoration: none;
+  }
+  h3 a:hover {
+    color: #fff;
+    text-decoration: underline;
+  }
+  p {
+    font-size: 0.9em;
+    color: #999;
+    margin: 0 0 1em 0;
+    line-height: 1.5;
+  }
+  .author-name {
+    color: #ccc;
+    text-decoration: none;
+  }
+  .author-name:hover {
+    color: #fff;
+    text-decoration: underline;
+  }
+  .tiny-link {
+    font-size: 0.85em;
+    color: var(--link-color);
+    text-decoration: none;
+  }
+  .tiny-link:hover {
+    text-decoration: underline;
+  }
+  ul {
+    list-style: disc;
+    padding-left: 1.2em;
+    margin: 0;
+  }
+  li {
+    margin-bottom: 0.3em;
+    color: #666;
+  }
+  li a {
+    color: #ccc;
+    text-decoration: none;
+  }
+  li a:hover {
+    color: #fff;
+    text-decoration: underline;
+  }
+  .branding {
+    margin-bottom: 2em;
+  }
+
+  @media (max-width: 768px) {
+    nav {
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+    }
+    .branding {
+      margin-bottom: 0;
+    }
+    h1 {
+      font-size: 1.25em;
+      margin: 0;
+    }
+    .section {
+      margin-bottom: 0;
+    }
+    .section.author p {
+      margin: 0;
+    }
+    .section.navigation h3 {
+      display: inline-block;
+      margin-right: 1.5em;
+      font-size: 1em;
+      padding: 0.5em 0; /* easier to tap */
+    }
+    li {
+      padding: 0.5em 0; /* easier to tap */
+      border-bottom: 1px solid #eee;
+    }
+  }
 </style>

@@ -1,80 +1,78 @@
 ---
-import { getCollection } from "astro:content";
-import BaseHead from "../../components/BaseHead.astro";
-import FormattedDate from "../../components/FormattedDate.astro";
-import Header from "../../components/Header.astro";
-import { SITE_DESCRIPTION, SITE_TITLE } from "../../consts";
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import Header from '../../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 
-const posts = (await getCollection("blog")).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
 ---
 
 <!doctype html>
 <html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<style>
-			ul {
-				list-style-type: none;
-				padding: 0;
-			}
-			li {
-				margin-bottom: 2em;
-				display: flex;
-				align-items: baseline;
-			}
-			.date {
-				color: #666;
-				font-size: 0.9em;
-				margin-right: 1.5em;
-				min-width: 150px;
-			}
-			.title {
-				font-size: 1.25em;
-				color: var(--link-color);
-				font-weight: bold;
-			}
-			a {
-				text-decoration: none;
-				display: flex;
-				align-items: baseline;
-			}
-			a:hover .title {
-				text-decoration: underline;
-			}
-			@media (max-width: 600px) {
-				li,
-				a {
-					flex-direction: column;
-				}
-				.date {
-					margin-bottom: 0.2em;
-				}
-			}
-		</style>
-	</head>
-	<body>
-		<Header />
-		<main>
-			<section>
-				<ul>
-					{
-						posts.map((post) => (
-							<li>
-								<a href={`/blog/${post.id}/`}>
-									<span class="date">
-										<FormattedDate
-											date={post.data.pubDate}
-										/>
-									</span>
-									<span class="title">{post.data.title}</span>
-								</a>
-							</li>
-						))
-					}
-				</ul>
-			</section>
-		</main>
-	</body>
+  <head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+    <style>
+      ul {
+        list-style-type: none;
+        padding: 0;
+      }
+      li {
+        margin-bottom: 2em;
+        display: flex;
+        align-items: baseline;
+      }
+      .date {
+        color: #666;
+        font-size: 0.9em;
+        margin-right: 1.5em;
+        min-width: 150px;
+      }
+      .title {
+        font-size: 1.25em;
+        color: var(--link-color);
+        font-weight: bold;
+      }
+      a {
+        text-decoration: none;
+        display: flex;
+        align-items: baseline;
+      }
+      a:hover .title {
+        text-decoration: underline;
+      }
+      @media (max-width: 600px) {
+        li,
+        a {
+          flex-direction: column;
+        }
+        .date {
+          margin-bottom: 0.2em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <Header />
+    <main>
+      <section>
+        <ul>
+          {
+            posts.map((post) => (
+              <li>
+                <a href={`/blog/${post.id}/`}>
+                  <span class="date">
+                    <FormattedDate date={post.data.pubDate} />
+                  </span>
+                  <span class="title">{post.data.title}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </main>
+  </body>
 </html>

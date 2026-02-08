@@ -1,0 +1,27 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead
+      title={`Projects | ${SITE_TITLE}`}
+      description={SITE_DESCRIPTION}
+    />
+    <style>
+      main {
+        max-width: 900px;
+      }
+    </style>
+  </head>
+  <body>
+    <Header />
+    <main>
+      <h1>Work, Projects and Publications</h1>
+      <p>Coming soon...</p>
+    </main>
+  </body>
+</html>
