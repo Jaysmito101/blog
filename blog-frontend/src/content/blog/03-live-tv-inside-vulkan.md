@@ -2126,7 +2126,7 @@ So if items get abandoned in the channel during shutdown, their memory still get
 
 ### Sources Hash: Handling Source Changes
 
-A clever mechanism handles the case where the user changes the source URLs while segments from the old sources are still in the pipeline. Every task in the pipeline carries a `sourcesHash` field containing the hash of the source set at the time the task was created. When the main thread receives a ready segment, it compares the segment's hash to the current hash:
+Here's a neat trick for handling the case where the user changes source URLs while segments from the old sources are still floating around in the pipeline. Every task carries a `sourcesHash`  the hash of the source set when the task was created. When the main thread gets a ready segment, it just compares:
 
 ```c
 if (payload.sourcesHash != scene->sourcesHash) {
@@ -2136,7 +2136,7 @@ if (payload.sourcesHash != scene->sourcesHash) {
 }
 ```
 
-This prevents stale data from being decoded and displayed, ensuring a clean transition when sources change. When sources are changed (e.g., via drag-and-drop), the worker pool is flushed to clear any in-progress tasks:
+This keeps stale data from getting decoded and shown on screen. Clean transitions when sources change. When you change sources (like via drag-and-drop), we flush the whole worker pool:
 
 ```c
 avdHLSWorkerPoolFlush(&hlsPlayer->workerPool);
