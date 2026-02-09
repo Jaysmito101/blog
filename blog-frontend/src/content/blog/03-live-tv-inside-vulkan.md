@@ -2147,6 +2147,35 @@ __avdSceneHLSPlayerLoadSourcesFromPath(appState, hlsPlayer, newPath);
 ---
 
 
+## So... was it worth it?
+
+Honestly? Yeah. What started as "how does TV actually work?" turned into one of the biggest rabbit holes I've gone down. Network protocols, container formats, video compression, hardware acceleration, color science, audio engineering, multithreaded pipelines, procedural 3D modeling, I touched all of it in a single project. Without FFmpeg. Without libav. Without GStreamer. Just me, the specs, and a lot of stubbornness. Yes I do regret beign naive about how much work I would end up doing behind it, but I dont regret doing it at all.
+
+
+The pico libraries (picoM3U8, picoMpegTS, picoH264, picoAudio) are all standalone now and part of libpico if anyone wants to use them. The Vulkan Video infrastructure in AVD is solid enough for future video work too.
+
+Is it production quality? Absolutely not. H.264 only (no H.265 or AV1), 4:2:0 chroma only, media playlists only (no adaptive bitrate), and the sync is built for live streams not VOD. But it works. With real live streams off the internet. In real-time. On retro TVs in a fully ray-marched 3D scene.
+
+And honestly? Sometimes thats enough.
+
+But, its not all, I learned so much along the way, and I hope this write-up gives you a good look at the inner workings of HLS streaming and Vulkan video decoding. If you're interested in any part of it, the source code is all on GitHub, and I'm happy to answer questions or dive deeper into any aspect at any time  .
+
+---
+
+## Demo
+
+Here's the whole thing in action — live video playing on retro TV sets in a ray-marched Vulkan scene:
+
+<iframe width="100%" height="600" src="https://www.youtube.com/embed/nnYdYYJBc6s" title="Live HLS Video Player in Vulkan" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+---
+
+*All source code for this project is available on GitHub:*
+- *[Advanced Vulkan Demos](https://github.com/Jaysmito101/AdvancedVulkanDemos)*
+- *[libpico](https://github.com/Jaysmito101/libpico)*
+
+
+
 ## Appendix: Resources and References
 
 The development of this project was informed by numerous resources. Here is a comprehensive list:
