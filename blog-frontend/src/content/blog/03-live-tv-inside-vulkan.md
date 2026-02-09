@@ -2036,7 +2036,7 @@ static void __avdHLSMediaDownloadWorker(void *arg)
 
 ### Media Cache
 
-The media cache uses a fixed-size LRU (Least Recently Used) eviction strategy:
+The cache uses a fixed-size LRU (Least Recently Used) eviction strategy. Pretty standard stuff:
 
 ```c
 #define AVD_HLS_MEDIA_CACHE_SIZE 32
@@ -2047,11 +2047,11 @@ typedef struct {
 } AVD_HLSMediaCache;
 ```
 
-Each entry has a capacity field that allows buffer reuse — if a new entry fits in an evicted entry's buffer, the buffer is reused instead of being reallocated. This reduces memory allocation pressure during sustained playback.
+Each entry has a capacity field so we can reuse buffers if a new entry fits in an evicted entry's buffer, we just reuse it instead of allocating again. Cuts down on memory allocation churn during sustained playback.
 
 ### Media Demux Workers
 
-These threads receive raw .ts file data, demux it using picoMpegTS, and produce separated H.264 video and AAC audio buffers:
+These threads take the raw .ts data, demux it with picoMpegTS, and spit out separated H.264 video and AAC audio buffers:
 
 ```c
 static void __avdHLSMediaDemuxWorker(void *arg)
@@ -2091,7 +2091,7 @@ static void __avdHLSMediaDemuxWorker(void *arg)
 
 ### URL Pool
 
-The URL pool is a thread-safe string interning system. URLs are hashed to 32-bit integers, and the pool maintains a mapping from hash to string:
+The URL pool is basically a thread-safe string interning system. URLs get hashed to 32-bit integers, and the pool keeps a mapping from hash back to string:
 
 ```c
 #define AVD_HLS_URL_POOL_CAPACITY 128
@@ -2107,7 +2107,7 @@ typedef struct {
 } AVD_HLSURLPool;
 ```
 
-This avoids passing long URL strings through the thread channels. Instead, only 32-bit hashes are passed, and any thread can resolve a hash back to its URL by querying the pool. The pool uses LRU eviction when full.
+This way we don't have to pass long URL strings through the thread channels. Just 32-bit hashes, and any thread can look up the actual URL from the pool whenever it needs to. The pool uses LRU eviction when it fills up.
 
 ### Channel-Based Communication
 
