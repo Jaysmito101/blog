@@ -2146,39 +2146,6 @@ __avdSceneHLSPlayerLoadSourcesFromPath(appState, hlsPlayer, newPath);
 
 ---
 
-## Part XI: Lessons Learned and Retrospective
-
-Building this system from scratch was an education in both media technology and systems engineering. Here are some of the key lessons:
-
-### 1. Specifications Are Your Friend (and Your Enemy)
-
-The ITU-T specifications for H.222.0 and H.264 are extraordinarily detailed and precise. Every field, every conditional, every edge case is documented. But the sheer volume of information makes them difficult to navigate, and there are frequent cross-references between different sections. The key to success was reading the specification alongside reference implementations (particularly FFmpeg's) and testing against real streams.
-
-### 2. The Gap Between "Works" and "Works Correctly" Is Immense
-
-Getting the first decoded frame to appear on screen was a milestone, but it was far from the end. Making the decoder work correctly for all frame types (I, P, B), all POC types (0, 1, 2), and all the edge cases in reference picture management took as much effort as the initial implementation. The git history tells the story: dozens of bug fix commits after the initial "basic video decoding" commit.
-
-### 3. Vulkan Video Is Young and Under-Documented
-
-The Vulkan Video extensions are relatively new, and documentation beyond the specification itself is sparse. Resources like the Khronos blog posts, Wicked Engine's implementation, and the "First Frames" blog post were invaluable. But many details — particularly around session parameter management, DPB lifecycle, and the coincide/distinct mode decision — had to be figured out through experimentation.
-
-### 4. Thread Safety Is About Design, Not Just Mutexes
-
-The worker pool's design — with clear ownership semantics, typed channels, and hash-based stale data detection — prevented entire categories of concurrency bugs. The most subtle bugs were not race conditions but logic errors in the pipeline's state management.
-
-### 5. Audio-Video Sync Is a Continuous Challenge
-
-The current synchronization approach — time-based with segment-boundary switching — works well for live streams where absolute timing precision is less critical than smooth continuous playback. A VOD player would need tighter synchronization, likely based on PTS values from the MPEG-TS layer.
-
-### 6. Color Spaces Matter More Than You Think
-
-Getting the YCbCr to RGB conversion wrong produces subtly incorrect colors that are hard to spot unless you are looking for them. The choice between BT.601 and BT.709 depends on the stream's resolution and encoding settings (encoded in the SPS VUI parameters), and using the wrong matrix produces a noticeable color shift.
-
-### 7. The Value of Constraint-Driven Development
-
-The self-imposed constraint of no external media libraries forced a deeper understanding of every layer of the media stack. Without this constraint, the project would have been much faster to build but much less educational. The libraries created for this project (picoM3U8, picoMpegTS, picoH264, picoAudio) are now reusable components available to anyone.
-
----
 
 ## Appendix: Resources and References
 
