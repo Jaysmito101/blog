@@ -1647,7 +1647,7 @@ The material ID encoding is a neat trick: screen surfaces get material IDs 10-13
 
 ### Scene Layout
 
-Four TVs are placed in a semicircular arrangement, each at a different position and rotation:
+Four TVs are arranged in a semicircle, each at a different position and rotation:
 
 ```hlsl
 static const float3 screenPositions[4] = {
@@ -1664,7 +1664,7 @@ The ground plane is an infinite floor at y=0, rendered with a subtle grid patter
 
 ### Normal Calculation
 
-Surface normals are calculated using the standard central-difference method:
+Surface normals are calculated using the good old central-difference method:
 
 ```hlsl
 float3 calcNormal(float3 p) {
@@ -1677,11 +1677,11 @@ float3 calcNormal(float3 p) {
 }
 ```
 
-This numerical gradient evaluation requires six evaluations of `mapScene`, which is why the scene's geometry is kept relatively simple — complex SDF scenes can become prohibitively expensive for real-time rendering.
+This numerical gradient evaluation needs six evaluations of `mapScene` which is exactly why we keep the scene geometry relatively simple — complex SDF scenes can get really expensive for real-time rendering.
 
 ### Soft Shadows
 
-The scene implements Inigo Quilez's soft shadow algorithm, which produces physically plausible penumbra effects:
+For shadows I went with the well now, Inigo Quilez's soft shadow algorithm, which gives you pretty nice looking penumbra effects:
 
 ```hlsl
 float calcSoftShadow(float3 ro, float3 rd, float mint, float tmax, float k)
@@ -1706,7 +1706,7 @@ float calcSoftShadow(float3 ro, float3 rd, float mint, float tmax, float k)
 }
 ```
 
-The parameter `k` controls the shadow softness — lower values produce harder shadows, higher values produce softer penumbra. The algorithm tracks the closest approach of the shadow ray to any surface along its path, using this to estimate the angular extent of the shadow-casting geometry, producing realistic soft shadow edges.
+The parameter `k` controls the shadow softness lower values give harder shadows, higher values give softer penumbra. The algorithm tracks how close the shadow ray gets to any surface along its path, and uses that to estimate the angular extent of the shadow-casting geometry. Pretty cool.
 
 ### Lighting Model
 
