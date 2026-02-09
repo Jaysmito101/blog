@@ -1325,8 +1325,6 @@ bool isFrameInTime(AVD_VulkanVideoDecoder *video,
 
 Alright so with all the individual pieces built, the HLS player scene ties them all together into one unified system. The scene follows AVD's plugin-based model: it implements `init`, `load`, `update`, `render`, `destroy`, and `inputEvent` callbacks.
 
-![System Architecture Overview](../../assets/blog/03-vulkan-video/architecture_overview.svg)
-
 ### Scene Structure
 
 The scene manages up to `AVD_SCENE_HLS_PLAYER_MAX_SOURCES` (4) independent HLS sources simultaneously. Each source has:
