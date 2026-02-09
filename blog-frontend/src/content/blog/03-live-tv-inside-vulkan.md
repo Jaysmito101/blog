@@ -937,7 +937,7 @@ Without this, the validation layers will yell at you. Regular graphics images do
 
 ### The Decoded Picture Buffer (DPB)
 
-The DPB is central to H.264 decoding. It stores reference frames that other frames depend on for motion-compensated prediction. In Vulkan Video, the DPB is implemented as a layered image:
+The DPB is central to how H.264 decoding works. It stores reference frames that other frames depend on for motion-compensated prediction. In Vulkan Video, the DPB is set up as a single layered image where each array layer is one DPB slot:
 
 ```c
 AVD_VulkanImageCreateInfo dpbImageInfo = {
@@ -945,15 +945,19 @@ AVD_VulkanImageCreateInfo dpbImageInfo = {
     .height = paddedHeight,
     .format = VK_FORMAT_G8_B8R8_2PLANE_420_UNORM,
     .usage = VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR
-           | VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR
-           | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+           | VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR   // only if coincide mode
+           | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,          // for copying frames out
     .arrayLayers = numDPBSlots,
 };
 ```
 
-Each array layer represents one DPB slot. The number of slots is determined by the SPS's `max_num_ref_frames` field plus one (for the currently decoding frame).
+The number of slots comes from the SPS's `max_num_ref_frames` field plus one (for the frame we're currently decoding into). A typical H.264 stream might need 4-5 DPB slots, but the max would be 16 + 1 according to the H264 spec.
 
-The format `VK_FORMAT_G8_B8R8_2PLANE_420_UNORM` is a multi-planar format: the first plane contains 8-bit luma (Y) samples, and the second plane contains interleaved 8-bit chroma (Cb, Cr) samples at half resolution in both dimensions.
+The format `VK_FORMAT_G8_B8R8_2PLANE_420_UNORM` is a multi-planar format: first plane has 8-bit luma (Y) samples at full resolution, and the second plane has interleaved 8-bit chroma (Cb, Cr) samples at half resolution in both dimensions. This is the standard NV12 format that basically every video decoder outputs.
+
+I also track image layouts per DPB slot in an array (`imageLayouts[MAX_SLOTS + 1]`). When the DPB is first created, all slots start in `VK_IMAGE_LAYOUT_UNDEFINED` and get transitioned to `VK_IMAGE_LAYOUT_VIDEO_DECODE_DPB_KHR` via image memory barriers before the first decode. Each barrier targets just one array layer (`baseArrayLayer = slotIndex`, `layerCount = 1`).
+
+If coincide mode is supported, the DPB image also gets `VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR` — meaning the decoder writes directly into a DPB slot, same image serves as both reference storage and decode output. If only distinct mode is available, I create a separate "decoded output image" with `arrayLayers = 2`, usage `VIDEO_DECODE_DST_BIT_KHR | TRANSFER_SRC_BIT`, and `VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT`.
 
 ### DPB Coincide vs. Distinct Mode
 
