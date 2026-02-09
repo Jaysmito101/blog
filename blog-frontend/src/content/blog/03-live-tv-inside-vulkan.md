@@ -1928,7 +1928,7 @@ There are other more sensible ways of doing this like, calculating based of the 
 
 ### Handling Buffer Starvation
 
-If the player context runs out of data to decode — which can happen if the network is slow or the worker threads are busy — it triggers an early source refresh:
+If we run out of data to decode maybe the network's slow or the worker threads are backed up we trigger an early source refresh:
 
 ```c
 if (!avdSceneHLSPlayerContextIsFed(&source->player) && time - source->lastRefreshed >= 1.0f) {
@@ -1937,19 +1937,19 @@ if (!avdSceneHLSPlayerContextIsFed(&source->player) && time - source->lastRefres
 }
 ```
 
-This proactive approach helps recover from transient network issues by fetching updated playlist information sooner than the regular refresh interval.
+This way we can recover from transient network hiccups by fetching updated playlist info sooner than the regular refresh interval. Better than just sitting there with a frozen frame right?
 
 ---
 
 ## Part X: The Multithreaded Pipeline
 
-The HLS player's data pipeline is inherently asynchronous. Downloading media over the network takes time, demuxing and parsing add latency, and all of this needs to happen without blocking the main rendering thread. AVD solves this with a carefully designed multithreaded worker pool.
+So the whole HLS data pipeline is inherently async. Downloading stuff over the network takes time, demuxing and parsing add latency, and none of this should block the main render thread. AVD handles this with a worker pool that I'm honestly pretty proud of.
 
 ![Worker Pool Pipeline Architecture](../../assets/blog/03-vulkan-video/worker_pipeline.svg)
 
 ### Thread Architecture
 
-The worker pool creates three types of worker threads, connected by thread-safe channels:
+The worker pool spins up three types of worker threads, all connected by thread-safe channels:
 
 ```
 [Main Thread] --source URL--> [Source Download Workers]
@@ -1973,7 +1973,7 @@ The worker pool creates three types of worker threads, connected by thread-safe 
 
 ### Source Download Workers
 
-These threads receive source URLs (HLS playlist URLs), download them using curl, parse them with picoM3U8, and generate media download tasks for each segment in the playlist:
+These threads take source URLs (HLS playlist URLs), download them with curl, parse them with picoM3U8, and then create download tasks for each segment in the playlist:
 
 ```c
 static void __avdHLSSourceDownloadWorker(void *arg)
@@ -2001,11 +2001,11 @@ static void __avdHLSSourceDownloadWorker(void *arg)
 }
 ```
 
-An important optimization is the check against `currentlyPlayingSegmentId` — segments that have already been played are skipped to avoid wasting bandwidth.
+One important thing here the check against `currentlyPlayingSegmentId`. Segments that have already been played get skipped so we don't waste bandwidth re-downloading them.
 
 ### Media Download Workers
 
-These threads download individual media segments (.ts files). They implement a caching layer to avoid redundant downloads:
+These guys download individual media segments (.ts files). They've got a caching layer to avoid redundant downloads:
 
 ```c
 static void __avdHLSMediaDownloadWorker(void *arg)
