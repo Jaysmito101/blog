@@ -1101,7 +1101,6 @@ for (uint32_t i = 0; i < numDPBSlots; i++) {
     // Tie it all together
     referenceSlotInfos[i] = (VkVideoReferenceSlotInfoKHR){
         .sType = VK_STRUCTURE_TYPE_VIDEO_REFERENCE_SLOT_INFO_KHR,
-        .pPictureResource = &referenceSlotPictures[i],
         .slotIndex = i,
         .pPictureResource = &referenceSlotPictures[i],
         .pNext = &dpbSlotsH264[i],   // H.264 data chained on
@@ -1327,7 +1326,11 @@ Alright so with all the individual pieces built, the HLS player scene ties them 
 
 ### Scene Structure
 
-The scene manages up to `AVD_SCENE_HLS_PLAYER_MAX_SOURCES` (4) independent HLS sources simultaneously. Each source has:
+The scene can manage up to `AVD_SCENE_HLS_PLAYER_MAX_SOURCES` (4) independent HLS sources at the same time.
+
+The number is not really a technical limit, more of a random limit I came up with.
+
+Each source looks like:
 
 ```c
 typedef struct {
@@ -1342,7 +1345,7 @@ typedef struct {
 } AVD_SceneHLSPlayerSource;
 ```
 
-The scene also maintains shared resources:
+And then there are the shared resources:
 
 ```c
 typedef struct AVD_SceneHLSPlayer {
@@ -1367,7 +1370,7 @@ typedef struct AVD_SceneHLSPlayer {
 
 ### Source Loading
 
-Sources are loaded from a text file (`assets/scene_hls_player/sources.txt`) where each line is an HLS playlist URL:
+Sources are loaded from a text file (`assets/scene_hls_player/sources.txt`) where each line is just an HLS playlist URL:
 
 ```
 https://example.com/stream1/playlist.m3u8
@@ -1376,9 +1379,9 @@ https://example.com/stream3/playlist.m3u8
 https://example.com/stream4/playlist.m3u8
 ```
 
-The loading function validates each URL, assigns it to a source slot, and computes a hash of the entire source set. This hash is used throughout the pipeline to detect stale data when sources are changed.
+The loading function validates each URL, sticks it in a source slot, and computes a hash of the entire source set. This hash gets used throughout the pipeline to detect stale data when sources change.
 
-A particularly nice feature is drag-and-drop support: users can drag a text file containing source URLs directly onto the application window to switch streams:
+One feature I'm pretty happy about is drag-and-drop support: you can just drag a text file containing source URLs directly onto the app window to switch streams:
 
 ```c
 if (event->type == AVD_INPUT_EVENT_DRAG_N_DROP) {
@@ -1392,7 +1395,7 @@ if (event->type == AVD_INPUT_EVENT_DRAG_N_DROP) {
 
 ### Initialization
 
-Scene initialization creates the graphics pipeline, the worker pool, the URL pool, the media cache, and loads initial sources:
+Scene initialization sets up the graphics pipeline, the worker pool, the URL pool, the media cache, and loads the initial sources:
 
 ```c
 bool avdSceneHLSPlayerInit(struct AVD_AppState *appState, union AVD_Scene *scene)
@@ -1427,7 +1430,7 @@ bool avdSceneHLSPlayerInit(struct AVD_AppState *appState, union AVD_Scene *scene
 
 ### The Update Loop
 
-The update function is the heart of the scene. Called every frame, it orchestrates the entire pipeline:
+The update function is really the heart of the whole scene. Its called every frame and it keeps the entire pipeline running:
 
 ```c
 bool avdSceneHLSPlayerUpdate(struct AVD_AppState *appState, union AVD_Scene *scene)
@@ -1447,15 +1450,11 @@ bool avdSceneHLSPlayerUpdate(struct AVD_AppState *appState, union AVD_Scene *sce
 }
 ```
 
-**Source Updates**: Each source has a `refreshIntervalMs` timer. When the timer expires, a new playlist fetch is enqueued to the worker pool. The refresh interval is dynamically adjusted based on segment duration — shorter segments mean more frequent refreshes.
-
-**Receiving Ready Segments**: The main thread polls the worker pool's ready channel for completed segments. Each received segment is validated (its sources hash is checked against the current hash to detect stale data), and then passed to the appropriate player context.
-
-**Context Updates**: For each source, the player context handles video decoding and audio playback. If the current segment's duration has elapsed, the context switches to the next segment from the segment store. If no frames are available for the current time, new video data is decoded.
+Basically every frame we first check if any sources need their playlists refreshed each source has a timer and when it expires we enqueue a new fetch to the worker pool (shorter segments = more frequent refreshes). Then we poll the worker pool for any segments that finished downloading and demuxing, validate them against the current sources hash to catch stale data, and hand them off to the right player context. Finally each player context does its thing decoding frames, managing audio, switching to the next segment when the current one runs out. And of course theres camera movement handling too.
 
 ### Frame Binding
 
-When a new decoded frame is acquired, it is bound to the bindless descriptor set for shader access:
+When we get a new decoded frame, it gets bound to the bindless descriptor set for shader access:
 
 ```c
 if (avdSceneHLSPlayerContextTryAcquireFrame(&source->player, &frame)) {
@@ -1479,7 +1478,7 @@ if (avdSceneHLSPlayerContextTryAcquireFrame(&source->player, &frame)) {
 }
 ```
 
-Each source uses two descriptor slots — one for luma and one for chroma. With four sources, this uses descriptors 0-7 in the bindless set.
+Each source uses two descriptor slots one for luma and one for chroma. With four sources, thats descriptors 0-7 in the bindless set (AVD uses a global bindless descriptor set for everything). The fragment shader samples from these using the source index to calculate the right array element.
 
 ### Player Context
 
