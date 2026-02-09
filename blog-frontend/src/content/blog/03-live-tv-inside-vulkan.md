@@ -716,14 +716,45 @@ VkVideoProfileInfoKHR videoProfileInfo = {
 };
 ```
 
-These structures are used to query the device's video decode capabilities (maximum resolution, supported levels, DPB requirements) and to create video decode queues.
+Notice the `pNext`, the H.264-specific profile info is chained onto the generic profile info. This is a pattern you will see *everywhere* in Vulkan Video. Almost every struct has something codec-specific hanging off its `pNext`. Get used to it because it absolutely does not stop here.
 
-The capability query returns information about:
-- Maximum coded extent (resolution)
-- Maximum number of DPB slots
-- Maximum number of active reference pictures
-- Minimum bitstream buffer alignment requirements
-- Whether DPB and output can coincide (share the same image) or must be distinct
+These two structures become your "video identity card", you will need them when creating video sessions, when creating buffers, when creating images, when querying capabilities... basically everywhere. I keep them around as globals and just point to them whenever needed.
+
+But it gets even more nested. When you need to attach this profile to things like buffer or image creation, you wrap it in yet another layer:
+
+```c
+VkVideoProfileListInfoKHR profileListInfo = {
+    .sType = VK_STRUCTURE_TYPE_VIDEO_PROFILE_LIST_INFO_KHR,
+    .profileCount = 1,
+    .pProfiles = &videoProfileInfo,  // points to the profile info above
+};
+```
+
+This `VkVideoProfileListInfoKHR` is what actually gets chained onto `VkBufferCreateInfo.pNext` or `VkImageCreateInfo.pNext` when you're creating video-related resources. I have a helper function `avdVulkanVideoGetH264ProfileListInfo()` that just returns a pointer to this pre-built struct, and since we only handle one type of video, that is just returning a static pointer to the same struct every time.
+
+#### Capability Query
+
+Before doing anything else, you query what the hardware can actually do. And yes, the capability query uses pNext chains too:
+
+```c
+VkVideoDecodeH264CapabilitiesKHR h264Capabilities = {
+    .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_CAPABILITIES_KHR,
+};
+
+VkVideoDecodeCapabilitiesKHR decodeCapabilities = {
+    .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_CAPABILITIES_KHR,
+    .pNext = &h264Capabilities,  // chain H.264 specifics
+};
+
+VkVideoCapabilitiesKHR capabilities = {
+    .sType = VK_STRUCTURE_TYPE_VIDEO_CAPABILITIES_KHR,
+    .pNext = &decodeCapabilities,  // chain decode specifics
+};
+
+vkGetPhysicalDeviceVideoCapabilitiesKHR(physicalDevice, &videoProfileInfo, &capabilities);
+```
+
+The result tells us max resolution, how many DPB slots we get, how many active reference pictures we can have at once, bitstream buffer alignment requirements, and whether DPB and output images can share memory (coincide mode) or need to be separate (distinct mode). All pretty critical stuff.
 
 ### Creating the Video Session
 
