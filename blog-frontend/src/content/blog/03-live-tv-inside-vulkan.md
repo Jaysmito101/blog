@@ -647,9 +647,56 @@ Before we go further, let me quickly explain the main building blocks you work w
 
 ### Device Setup and Capability Queries
 
-Before any video decoding can happen, you gotta set up the Vulkan device with video queue support. AVD's device initialization code queries for video decode capabilities:
+Before any video decoding can happen, you gotta set up the Vulkan device with video queue support. This part involves a surprising amount of plumbing that you dont normally deal with in regular Vulkan graphics work.
 
-Before you proceed any further, keep in mind, that whenever you are adding Video support to your application, ALWAYS ALWAYS make sure to design it in a way that its easily disabled(via macros, runtime flags whatever) as most debuggers like RenderDoc and Nsight dont support video extensions, and if have vulkan video extensions enabled, you wont be able to use these debuggers at all.
+Before you proceed any further, keep in mind, that whenever you are adding Video support to your application, ALWAYS, I repeat ALWAYS make sure to design it in a way that its easily disabled(via macros, runtime flags, or whatever you like) as most debuggers like RenderDoc and Nsight dont support video extensions, and if have vulkan video extensions enabled, you wont be able to use these debuggers at all. In AVD I have a `AVD_VULKAN_VIDEO_DISABLE` macro that just forces all video features off so I can actually use RenderDoc when debugging other parts of the engine.
+
+#### Extensions
+
+First things first, you need the right extensions enabled. For H.264 decode, thats three sets:
+
+```c
+// Core video queue support
+const char *videoExtensions[] = {
+    VK_KHR_VIDEO_QUEUE_EXTENSION_NAME,     
+    VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
+};
+
+// Decode-specific 
+const char *decodeExtensions[] = {
+    VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME,  
+    VK_KHR_VIDEO_DECODE_H264_EXTENSION_NAME,   
+};
+
+// For sampling decoded frames in shaders (its optional, and I ended up not 
+// using this and just manually implementing the conversion in the shader)
+const char *ycbcrExtensions[] = {
+    VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME,  // YCbCr → RGB in sampler
+};
+```
+
+During physical device selection, I check if all extensions in each set are present and setup the flags (`videoCore`, `videoDecode`, `ycbcrConversion`). Then when creating the logical device, I conditionally add each set. This way if a device doesn't support video, everything else still works fine.
+
+#### Queue Family Discovery
+
+Video decode needs its own dedicated queue family, separate from your graphics and compute queues. You find it the same way you find any other queue family, enumerate them and look for the right flags:
+
+```c
+int32_t videoDecodeQueueFamilyIndex = findQueueFamily(
+    physicalDevice,
+    VK_QUEUE_VIDEO_DECODE_BIT_KHR | VK_QUEUE_TRANSFER_BIT,  // need both
+    VK_NULL_HANDLE,  // no surface needed
+    -1               // no exclusion
+);
+```
+
+I also request `VK_QUEUE_TRANSFER_BIT` alongside the decode bit because we need transfer capabilities for copying decoded frames around. Most implementations expose a dedicated video decode queue family thats separate from graphics, which is what you want, it means decode and render can truly run in parallel on different hardware units, atleast in theory. And almost all video dedode queue families I have encountered also support transfer operations.
+
+Once you have the queue family, you create a dedicated command pool for it, get a queue handle via `vkGetDeviceQueue`, and you're set.
+
+#### The Profile Info 
+
+This is essentially Vulkan Videos way of describing *what kind* of video you're dealing with.
 
 ```c
 VkVideoDecodeH264ProfileInfoKHR h264DecodeProfileInfo = {
