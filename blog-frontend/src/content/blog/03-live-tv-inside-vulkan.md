@@ -1482,7 +1482,7 @@ Each source uses two descriptor slots one for luma and one for chroma. With four
 
 ### Player Context
 
-The `AVD_SceneHLSPlayerContext` manages the lifecycle of a single stream:
+The `AVD_SceneHLSPlayerContext` is what manages the lifecycle of a single stream:
 
 ```c
 typedef struct {
@@ -1504,23 +1504,22 @@ typedef struct {
 } AVD_SceneHLSPlayerContext;
 ```
 
-The context uses a custom stream implementation (`avdHLSStreamCreate`) that supports appending new data as segments are downloaded. This appendable stream is critical for feeding continuous video data to the H.264 parser and Vulkan decoder.
+The context uses a custom stream implementation (`avdHLSStreamCreate`) that lets you append new data as segments come in. This appendable stream is really critical for feeding continuous video data to the H.264 parser and Vulkan decoder.
 
 ### Segment Store
 
-The segment store is a bounded buffer that holds downloaded but not-yet-played segments:
+The segment store is basically a bounded buffer that holds downloaded but not-yet-played segments:
 
 ```c
 #define AVD_SCENE_HLS_PLAYER_MAX_LOADED_SEGMENTS 16
 ```
 
-When a segment is fully demuxed and its audio/video data is ready, it is added to the segment store. When the player needs to switch to the next segment, it queries the store for the segment with the next sequential ID.
+When a segment is fully demuxed and its audio/video data is ready, it goes into the segment store. When the player needs the next segment, it just queries the store for the one with the next sequential ID.
 
-The store uses an LRU-like eviction strategy — when full, segments are sorted to find the one that should be replaced. It also provides functions to check if a segment is already loaded (to avoid redundant downloads) and to count loaded segments (for buffer health monitoring).
+The store uses an LRU-like eviction strategy when its full, segments are sorted to figure out which one to replace. It also has functions to check if a segment is already loaded (so we dont download the same thing twice) and to count loaded segments (for keeping an eye on buffer health).
 
 ### The Custom HLS Stream
 
-The custom stream implementation is a particularly clever piece of engineering. It implements picoStream's callback interface with a growable, appendable buffer:
 
 ```c
 typedef struct {
@@ -1532,9 +1531,9 @@ typedef struct {
 } AVD_ScenesHLSStream;
 ```
 
-The `headOffset` tracks the absolute byte position of the buffer's start in the overall stream. As new data is appended and old data is consumed, the buffer compacts itself, moving unconsumed data to the beginning and updating the offset. This allows the stream to handle arbitrarily long video streams without unbounded memory growth, while still supporting the seek operations that the H.264 parser requires (within a limited window).
+The `headOffset` tracks the absolute byte position of the buffer's start in the overall stream. As new data gets appended and old data gets consumed, the buffer compacts itself — moving unconsumed data to the beginning and updating the offset. This lets the stream handle arbitrarily long video streams without eating up all your memory, while still supporting the seek operations that the H.264 parser needs (within a limited window of course).
 
-The stream also maintains a seek buffer (`AVD_HLS_STREAM_SEEK_BUFFER_SIZE`) — a small amount of already-consumed data that is kept to allow backward seeks, which the parser occasionally needs when peeking at upcoming NAL units.
+The stream also keeps a seek buffer (`AVD_HLS_STREAM_SEEK_BUFFER_SIZE`) — basically a small amount of already-consumed data thats kept around to allow backward seeks, which the parser sometimes needs when peeking at upcoming NAL units.
 
 ```c
 bool avdHLSStreamAppendData(picoStream stream, const uint8_t *data, size_t dataSize)
@@ -1565,7 +1564,7 @@ bool avdHLSStreamAppendData(picoStream stream, const uint8_t *data, size_t dataS
 
 ---
 
-## Part VII: The Visual Experience — SDF Ray Marching and Retro TVs
+## Part VII: Rendering a nice looking scene
 
 With the functional pipeline complete, the visual presentation transforms decoded video into an immersive experience. Instead of simply displaying video in a flat rectangle, the HLS player scene renders decoded frames onto four retro television sets modeled entirely using Signed Distance Functions (SDFs) in a ray-marched 3D scene.
 
