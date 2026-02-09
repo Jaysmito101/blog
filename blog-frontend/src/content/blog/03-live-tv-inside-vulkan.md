@@ -606,32 +606,19 @@ The audio subsystem in AVD is built on [PortAudio](https://github.com/PortAudio/
 
 ## Part V: The AVD Vulkan Video Infrastructure
 
-With all the parsing and demuxing done, we reach the core of the system: actually decoding the video using the GPU. The Vulkan Video extensions (`VK_KHR_video_queue`, `VK_KHR_video_decode_queue`, `VK_KHR_video_decode_h264`) provide hardware-accelerated video decoding, and building a complete decoder on top of them is a significant engineering effort.
+Alright, with all the parsing and demuxing out of the way, we finally get to the real meat of the system: actually decoding the video on the GPU. The Vulkan Video extensions (`VK_KHR_video_queue`, `VK_KHR_video_decode_queue`, `VK_KHR_video_decode_h264`) give us hardware-accelerated video decoding, and let me warn you building a complete decoder on top of them is quite a painful job.
 
 ![Vulkan Video H.264 Decode Pipeline](../../assets/blog/03-vulkan-video/vulkan_video_decode.svg)
 
 ### Vulkan Video: An Overview
 
-The Vulkan Video extensions were introduced to bring video encode and decode operations into the Vulkan API ecosystem. Unlike traditional video decoding APIs (DXVA, VAAPI, VideoToolbox), Vulkan Video integrates video processing directly with the graphics API, enabling:
+So the Vulkan Video extensions were introduced to bring video encode and decode operations into the Vulkan API ecosystem. Unlike the traditional video decoding APIs (DXVA, VAAPI, VideoToolbox), Vulkan Video integrates video processing directly with the graphics API, and this is actually really cool because you get zero-copy transfer of decoded frames to your graphics pipeline, unified memory management, explicit sync between video and graphics workloads, and cross-platform hardware acceleration all with a single API.
 
-- Zero-copy transfer of decoded frames to graphics pipelines.
-- Unified memory management across video and graphics operations.
-- Explicit synchronization between video and graphics workloads.
-- Cross-platform hardware video acceleration with a single API.
-
-The key concepts in Vulkan Video are:
-
-**Video Sessions**: Analogous to a decoder instance. You create a video session with a specific codec, profile, and maximum resolution. The session requires GPU memory allocations.
-
-**Video Session Parameters**: Contain the codec-specific metadata needed for decoding — SPS and PPS for H.264. These can be updated when the stream parameters change.
-
-**Video Decode Operations**: Submitted as commands in a command buffer, similar to draw or compute commands. Each decode operation takes a bitstream buffer, reference pictures, and produces a decoded picture.
-
-**Decoded Picture Buffer (DPB)**: A set of images that hold decoded reference frames. The decoder reads from and writes to DPB slots as it processes frames.
+Before we go further, let me quickly explain the main building blocks you work with here. You have **Video Sessions** which are basically your decoder instances, create one with a specific codec, profile, max resolution, and it needs its own GPU memory. Then theres **Video Session Parameters** holding codec-specific metadata (SPS and PPS for H.264), which you update when stream parameters change. The actual decoding happens through **Video Decode Operations** submitted as commands in a command buffer, just like draw or compute commands. And finally the **Decoded Picture Buffer (DPB)**, a set of images holding reference frames that the decoder reads from and writes to as it moves through the frames.
 
 ### Device Setup and Capability Queries
 
-Before any video decoding can happen, the Vulkan device must be set up with video queue support. AVD's device initialization code queries for video decode capabilities:
+Before any video decoding can happen, you gotta set up the Vulkan device with video queue support. AVD's device initialization code queries for video decode capabilities:
 
 ```c
 VkVideoDecodeH264ProfileInfoKHR h264DecodeProfileInfo = {
