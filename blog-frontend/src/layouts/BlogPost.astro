@@ -80,6 +80,11 @@ const { title, description, pubDate, updatedDate, heroImage, headings } = Astro.
             overflow-y: auto;
             border-left: 1px solid var(--blockquote-border);
             padding-left: 1.5rem;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .toc-sidebar::-webkit-scrollbar {
+            display: none;
         }
         .toc-sidebar h2 {
             font-size: 1rem;
