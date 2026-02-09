@@ -1848,9 +1848,7 @@ emission += screenColor * glow;
 
 ### Post-Processing
 
-The final image undergoes several post-processing steps:
-
-1. **ACES Film Tonemapping**: Maps HDR values to the displayable [0,1] range using the ACES (Academy Color Encoding System) approximation:
+The final image goes through a few post-processing passes. First theres ACES film tonemapping to map HDR values down to [0,1]:
 
 ```hlsl
 float3 acesFilm(float3 x) {
@@ -1863,13 +1861,9 @@ float3 acesFilm(float3 x) {
 }
 ```
 
-2. **Color Grading**: Subtle color adjustments for a cinematic look — warm lift in the shadows, slight blue shift in the whites.
+After that we do some subtle color grading (warm lift in shadows, slight blue shift in whites), a gentle S-curve contrast enhancement via double smoothstep, and a tiny 1.15x saturation bump. Nothing crazy, just enough to make it look cinematic.
 
-3. **Contrast Enhancement**: Double smoothstep for gentle S-curve contrast.
-
-4. **Saturation Boost**: Slight increase in color saturation (1.15x).
-
-5. **Atmospheric Fog**: Distance-based fog blending toward a dark blue color, adding depth to the scene:
+And then atmospheric fog to give the scene some depth distance-based blending toward a dark blue:
 
 ```hlsl
 float fogIdx = 1.0 - exp(-saturate(dist / 100.0) * 2.0);
