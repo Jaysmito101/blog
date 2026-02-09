@@ -158,11 +158,15 @@ The parser works line-by-line. Each line is classified as either:
 
 For tag lines, the parser extracts the tag name and its attribute list (if any). Attributes are comma-separated key-value pairs, where values can be quoted strings, integers, floating-point numbers, or enumerated values.
 
-The parser maintains state as it processes lines. When it encounters an `#EXTINF` tag, it records the duration and waits for the next URI line to associate it with a segment. When it encounters `#EXT-X-STREAM-INF`, it waits for the next URI to create a variant stream entry.
+Now I wont be going into the nitty gritty of the parser itself, as you are free to check the code if you are curious, but in general the idea is simple, we dectect the type of play list anf then parse according to that, as the types of tages for either is different, for example in a media playlist we care about `#EXTINF` and `#EXT-X-MEDIA-SEQUENCE`, while in a master playlist we care about `#EXT-X-STREAM-INF`. 
 
-### Integration with AVD
+Now one thing to mention for those interested in implementign their own parser, that in a lot of cases the fields in the playlists can be shared across multiple segments that is if you encounter a certain tag once in a file you keep setting that data for all the upcoming segments until you encounter that tag again, for example the `#EXT-X-KEY` tag which specifies the encryption method and key URI for the segments, if it is present in the playlist, it is usually only present once at the top of the file, and then all segments are encrypted with that key, so you can just store that information in the playlist structure and apply it to all segments without needing to parse it again for each segment.
 
-In the HLS player scene, the M3U8 parser is used in the source download worker thread. When a source URL is fetched, the raw text content is passed to `picoM3U8PlaylistParse`. The resulting playlist structure is then iterated to extract media segment URLs:
+**How do we detect the type of playlist?**
+
+I wanted to have a really simple way of determining whether a file is a master playlist or a media playlist, and if possible without even parsing it. So what I ended up doing is go through the file un parsed, and look for the string ".m3u8" in the lines, if we find it, then we can be pretty sure that this is a master playlist, as media playlists typically do not reference other playlists, but rather media segments which are usually .ts files.
+
+In the HLS player scene, the M3U8 parser is used in the source download worker thread(we will get to what that is soon). When a source URL is fetched, the raw text content is passed to `picoM3U8PlaylistParse`. The resulting playlist structure is then iterated to extract media segment URLs:
 
 ```c
 picoM3U8Playlist playlist = NULL;
@@ -181,35 +185,43 @@ if (playlist->type != PICO_M3U8_PLAYLIST_TYPE_MEDIA) {
 for (uint32_t i = 0; i < playlist->media.mediaSegmentCount; i++) {
     picoM3U8MediaSegment segment = &playlist->media.mediaSegments[i];
     // resolve relative URL, enqueue for download...
+    segmentId = i + playlist->media.mediaSequence; // global segment ID
 }
 ```
 
-There is a notable design decision here: the current implementation only supports media playlists, not master playlists. For a production player, you would want to parse master playlists and select the appropriate variant stream based on available bandwidth. However, since the primary goal was to decode and display live video, supporting media playlists directly was sufficient.
+The current implementation only supports media playlists, not master playlists, and thats totally due to me being lazy, ideally you can just add another call there to reslove any of the media playlist urls form the master playlist and use that instead, but that isnt really very much a priority or requirement for me.
 
-The `mediaSequence` field is particularly important for live streams. It tells the player the absolute sequence number of the first segment in the playlist. Combined with each segment's index within the playlist, this allows the player to compute a globally unique segment ID, which is used throughout the system to track which segments have been downloaded, demuxed, and played.
+The `mediaSequence` field is particularly important for live streams. It tells the player the absolute sequence number of the first segment in the playlist. Combined with each segment's index within the playlist, this allows the player to compute a globally unique segment ID, which is used throughout the system to track which segments have been downloaded, demuxed, and played. This ensures we can easilyt handle the chunks and properly discard outdated chunks as the segmentId will only increase.
 
-### Development History
+Now that we have our segment info, we get the url to the TS files which we can download and mvoe tto the next step in the pipeline.
 
-Looking at the git history of libpico, picoM3U8 was one of the earlier libraries in the collection. The development followed a pattern common to all the pico libraries: start with the simplest possible working implementation, then iteratively add support for more tags and edge cases as real-world streams exposed gaps in the parser.
-
-One of the later additions was the `allowCache` field and support for the `EXT-X-ALLOW-CACHE` tag, added as the HLS player began encountering a wider variety of live streams in the wild. This kind of iterative development — implement, test against real streams, fix, repeat — is a recurring theme throughout this project.
+NOTE: It is very important to note here that, we must keep out segment duration which we get from here in this step for the further steps, as the MPEG-TS data or the H264 data in themselves may or maynot have timing information so we may need to rely on the segment duration for an accuration estimation of both duration of the clip as well as the framerate we need to render it at. This is something I had to learn the hard way and waste a lot of time figuring out as I was trying to get that info from the H2634 data or fallin back to hardcoded frmerates and that gave rise to all sorts of timing and sync issues.
 
 ---
 
-## Part II: picoMpegTS — Demultiplexing MPEG Transport Streams
+## Part II: Demultiplexing MPEG Transport Streams (picoMpegTS)
 
 Once we have the URLs of media segments from the M3U8 parser, we need to download them and extract their audio and video content. HLS typically uses MPEG Transport Stream (.ts) as its container format, and this is where picoMpegTS comes in.
 
 ![MPEG-TS Packet Structure](../../assets/blog/03-vulkan-video/mpegts_structure.svg)
+*NOTE: This diagram is AI-generated as I ran out of patiance trying to make it by hand, but I tried my best to ensure that the information is accurate, is there are any issues please forgive me for that, and feel free to reach out.*
 
 ### What is MPEG-TS?
 
-MPEG Transport Stream is a standard digital container format for the transmission of audio, video, and data. It was originally designed for broadcast applications (digital TV, satellite) where the transmission medium is unreliable — dropped packets, bit errors, and out-of-order delivery are all expected. Because of this heritage, MPEG-TS is designed to be highly resilient:
+MPEG Transport Stream is a standard digital container format for the transmission of audio, video, and data. It was originally designed for broadcast applications (digital TV, satellite) where the transmission medium is unreliable dropped packets, bit errors, and out-of-order delivery are all expected. Because of this heritage, MPEG-TS is designed to be highly resilient:
 
-- The stream is divided into fixed-size 188-byte **transport packets**.
+- The stream is divided into fixed-size 188-byte transport packets.
 - Each packet starts with a synchronization byte (0x47).
 - Packets carry a 13-bit **PID (Packet Identifier)** that identifies which elementary stream the packet belongs to.
-- The stream uses **program-specific information (PSI)** tables to describe its structure.
+- The stream uses **program-specific information (PSI)** tables to describe its structure
+  
+Some things to keep in mind here would be:
+
+* While MPEG-TS may in itself seem all nice and good, but the moment you try to step into the real world and playing real Live TV streams, you will see tour parser failing miserably for most of the cases, as they all actually work on an extended version of MPEG-TS called DVB(Digital Video Broadcasting) which is a set of standards for broadcasting digital TV, and it extends MPEG-TS with additional features and tables, so you need to be prepared to handle those as well if you want to be able to play real world streams.
+* A fun thing to note is, since these protocols were desinged with actual hardware information in mind you will see interesting things here like consideration of the actual `Transport Layer` mechanisms form the OSI model, for example the use of the `continuity counter` in the transport packet header to detect dropped packets, or the use of `PCR (Program Clock Reference)` values in adaptation fields to synchronize the decoders clock with the encoders clock, but most of that wont be relevant for as as we are dealing with HLS which is over HTTP which inturn is on top of TCP which fundamentally guarantees in order delivery and no dropped packets, so we can safely ignore those aspects of the specification for our use case, but it is still interesting to see how they are designed to work in the original context, like there are packet types that literally give you informtion on how to adjust the antenna to get better reception, or how to handle signal loss and all that, which is really interesting to see.
+* MPEG-TS is a very flexible format, it can carry multiple programs (channels) in the same stream, and each program can have multiple elementary streams (audio, video, subtitles). The PSI tables are used to describe this structure, so the parser needs to be able to handle multiple programs and streams if they are present.
+* Another important thing to keep in mind here is about CA (Conditional Access) and encryption, as some streams may be encrypted and require a key to decrypt them, and the key information is usually carried in the CAT (Conditional Access Table) in the PSI, so if you want to be able to play encrypted streams you need to be able to parse the CAT and handle the decryption as well, but for our use case we explicitly will be dealing with unencrypted streams so we will ignore that for now.
+* Another thing taht confused me quite a bit (mostly for me skipping important paragraphs of the spec while reading it) would be that PID in general will have explicit meanings, so some PIDs are well defined (tables given int he spec) others will be defined in the PMT (Program Map Table) which is part of the PSI, so you need to be able to parse the PMT to find out which PIDs correspond to video streams and which correspond to audio streams, and then route the payloads accordingly. Also most packets will be repeatedly sent in the stream, so you need to be able to handle that as well, for example the PAT (Program Association Table) is usually sent at the beginning of the stream and then repeated every few seconds, so you need to be able to parse it multiple times and update your internal state accordingly.
 
 ### The Transport Stream Structure
 
@@ -225,11 +237,9 @@ An MPEG-TS stream contains several layers of structure:
 - Adaptation field control
 - Continuity counter
 
-**Program-Specific Information (PSI)**: Special tables carried in dedicated PIDs:
+**Program-Specific Information (PSI)**: Special tables carried in dedicated PIDs, the most important of which are:
 - **PAT (Program Association Table)**: PID 0. Maps program numbers to the PIDs of their PMT (Program Map Table).
 - **PMT (Program Map Table)**: Lists all elementary streams in a program and their PIDs and types.
-- **CAT (Conditional Access Table)**: For encrypted streams.
-- **NIT (Network Information Table)**: Network-level information.
 
 **PES (Packetized Elementary Stream) Packets**: The audio and video data is first wrapped in PES packets, which can span multiple transport packets. PES packets have their own headers containing:
 - Stream ID (identifies the type: audio, video, etc.)
@@ -240,9 +250,9 @@ An MPEG-TS stream contains several layers of structure:
 
 ### The ITU-T H.222.0 Specification
 
-picoMpegTS was implemented based on the ITU-T H.222.0 v9 (08/2023) specification, with additional references to the excellent [tsduck](https://tsduck.io/docs/mpegts-introduction.pdf) introduction document and [FFmpeg's MPEG-TS implementation](https://github.com/FFmpeg/FFmpeg/blob/master/libavformat/mpegts.c).
+I implemented picoMpegTS based on the `ITU-T H.222.0 v9 (08/2023)` specification, with additional references to the [tsduck](https://tsduck.io/docs/mpegts-introduction.pdf) introduction document and [FFmpeg's MPEG-TS implementation](https://github.com/FFmpeg/FFmpeg/blob/master/libavformat/mpegts.c).
 
-The H.222.0 specification is a dense, 400+ page document. Implementing it from scratch required careful reading of the transport packet syntax, the PSI table structures, and the PES packet format. Not every part of the specification needed to be implemented — for our purposes, we needed:
+Not every part of the specification needed to be implemented, for our purposes, we needed:
 
 1. Transport packet parsing and synchronization.
 2. PAT parsing to find the PMT PID.
@@ -250,13 +260,23 @@ The H.222.0 specification is a dense, 400+ page document. Implementing it from s
 4. PES packet reassembly from transport packet payloads.
 5. Stream type identification to distinguish between H.264 video and AAC audio.
 
-### Library Architecture
+By I did end up implementing a lot more than that, for example I implemented the parsing of the adaptation field, even though we dont really need it for our use case, but it was interesting to see how it works.
 
-picoMpegTS provides a buffered parsing interface. You create a parser, feed it data buffers, and then query the parsed results:
+For a fun fact, since the TS files are technically still "Streams" if you drop them in a network analyzer tool like Wireshark, it will actaully parse and show you the data and different fields int here, and it was a huge boon to me trying to debug my parser. 
+
+If you are implementing your own parser a really improtant thing to keep in mind is a lot of program info isnt really in 8-bit strings, there can be a lot of non-english characters depending on what stream you are trying to parse, for instance I kept getting crashes on Japnese streams becasue I was dealing with them incorrectly.
+
+### Library Design
+
+picoMpegTS provides a buffered parsing interface. You create a parser, feed it data buffers, and then query the parsed results. 
+This was somewhat inspired by the way FFmpeg's implementation(their mpegts.c) work. Internally the system setps up filters for different types of PIDs as we keep encountering the PMTs and PATs and then when we encounter a new packet we just route it to the right filter based on its PID, and then the filters will do the parsing and reassembly and give us the PES packets which we can then use to extract the video and audio data from them. And the same filters can automatically maintain and update the tables required.
+
+NOTE: One thing I have grossly skipped over would be the handling of sections, even inside the reassebled packets the data might come in sections, and we also need to properly update the tables only after recieving all segments of a particular version. To check the exact details about table updation and segment handling check [this](https://github.com/Jaysmito101/libpico/blob/19a6d95c57340b826a781a45ec17efc0f4f872d0/include/pico/picoMpegTS.h#L2998),
 
 ```c
 picoMpegTS mpegts = picoMpegTSCreate(false);
 
+// here buffer is a buffer containing bunch of raw mpegts packets concatenated together (the typical content of a .ts file)
 if (picoMpegTSAddBuffer(mpegts, buffer, bufferSize) != PICO_MPEGTS_RESULT_SUCCESS) {
     // handle error
 }
@@ -279,9 +299,8 @@ The demuxing process works as follows:
 - PID 0 → PAT parser: extracts program-to-PMT mappings.
 - PMT PIDs → PMT parser: extracts stream PIDs and types.
 
-**Step 4: PES Reassembly**. For data PIDs (those listed in the PMT), payloads are accumulated until a complete PES packet is assembled. The `payload_unit_start_indicator` flag in the transport header signals the beginning of a new PES packet. The parser uses the continuity counter to detect dropped packets.
+**Step 4: PES Reassembly**. For data PIDs (those listed in the PMT), payloads are accumulated until a complete PES packet is assembled. The `payload_unit_start_indicator` flag in the transport header signals the beginning of a new PES packet. The parser uses the continuity counter to detect dropped packets. For PSI packets which will eventually update the tables like PMT/PAT their sections are aprsed and put in a temporary table, and we keep checking if we recieved all sections for that version of the table, once we do we move it to the completed tables list and figure out which version is the latest one and use that for routing the PES packets (by re adjusting the filters).
 
-**Step 5: PES Header Parsing**. Complete PES packets are parsed to extract timing information (PTS/DTS) and the elementary stream data.
 
 ### Stream Type Identification
 
@@ -292,17 +311,15 @@ One of the crucial functions provided by picoMpegTS is stream type identificatio
 #define PICO_MPEGTS_STREAM_TYPE_AAC_ADTS 0x0F
 ```
 
-The demux worker in AVD uses these to route PES packet payloads to the appropriate processing pipelines:
+The demux worker uses these to route PES packet payloads to the appropriate processing pipelines:
 
 ```c
 for (size_t i = 0; i < pesPacketCount; i++) {
     picoMpegTSPESPacket pesPacket = pesPackets[i];
-    if (picoMpegTSGetPMSStreamByPID(mpegts, pesPacket->head.pid)->streamType
-        == PICO_MPEGTS_STREAM_TYPE_H264) {
+    if (picoMpegTSGetPMSStreamByPID(mpegts, pesPacket->head.pid)->streamType == PICO_MPEGTS_STREAM_TYPE_H264) {
         totalH264Size += pesPacket->dataLength;
     }
-    if (picoMpegTSGetPMSStreamByPID(mpegts, pesPacket->head.pid)->streamType
-        == PICO_MPEGTS_STREAM_TYPE_AAC_ADTS) {
+    if (picoMpegTSGetPMSStreamByPID(mpegts, pesPacket->head.pid)->streamType == PICO_MPEGTS_STREAM_TYPE_AAC_ADTS) {
         totalAudioSize += pesPacket->dataLength;
     }
 }
@@ -315,27 +332,9 @@ if (picoMpegTSIsStreamIDVideo(pesPacket->head.streamId)) { ... }
 if (picoMpegTSIsStreamIDAudio(pesPacket->head.streamId)) { ... }
 ```
 
-### Real-World Challenges
-
-Implementing the MPEG-TS demuxer against real-world streams revealed several challenges:
-
-**Incomplete segments**: Some streams emit segments that begin mid-PES-packet. The demuxer needs to handle the case where the first PES packet in a segment is incomplete.
-
-**Multiple audio/video streams**: Some transport streams carry multiple video or audio PIDs. The PMT parsing needs to correctly enumerate all streams and their types.
-
-**Adaptation fields**: Many real-world streams use adaptation fields for PCR (Program Clock Reference) distribution and stuffing bytes. The parser needs to correctly skip these to find the payload.
-
-**Stream type variants**: Not all AAC audio uses the same stream type code. Some streams use stream type 0x0F (AAC ADTS), while others use 0x11 (AAC LATM). The current implementation focuses on ADTS, which is the more common format in HLS.
-
-### Development Timeline
-
-The picoMpegTS library went through several iterations. Looking at the early libpico commits, the initial implementation provided basic transport packet parsing and PAT/PMT extraction. Later commits added PES reassembly, stream type identification functions, and the zero-copy parsing mode.
-
-The development of picoMpegTS was deeply intertwined with the HLS player integration — bugs in the demuxer would manifest as corrupted video or missing audio in the player, driving iterative improvements. A particularly notable commit added the `picoMpegTSGetPMSStreamByPID` function, which maps PES packet PIDs back to their stream type as declared in the PMT — a crucial capability for routing data to the correct decoder.
-
 ---
 
-## Part III: picoH264 — Parsing H.264 Bitstreams
+## Part III: Parsing H.264 Bitstreams (picoH264)
 
 If picoMpegTS is the tool that opens the container, picoH264 is the tool that reads the contents. The H.264/AVC video compression standard is arguably the most complex individual component in the entire pipeline.
 
