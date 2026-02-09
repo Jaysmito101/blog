@@ -1,0 +1,340 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 500" width="1400" height="500" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <!-- Arrow marker -->
+    <marker id="arrowRight" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#e0e0e0"/>
+    </marker>
+    <marker id="arrowDown" markerWidth="7" markerHeight="10" refX="3.5" refY="10" orient="auto">
+      <polygon points="0 0, 7 0, 3.5 10" fill="#ffd166"/>
+    </marker>
+    <marker id="arrowUp" markerWidth="7" markerHeight="10" refX="3.5" refY="0" orient="auto">
+      <polygon points="0 10, 3.5 0, 7 10" fill="#ffd166"/>
+    </marker>
+    <!-- Channel gradient -->
+    <linearGradient id="chanGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3a3a5c"/>
+      <stop offset="50%" stop-color="#4a4a6c"/>
+      <stop offset="100%" stop-color="#3a3a5c"/>
+    </linearGradient>
+    <!-- Glow filters -->
+    <filter id="glowYellow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feFlood flood-color="#ffd166" flood-opacity="0.3"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glowBlue" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feFlood flood-color="#4361ee" flood-opacity="0.25"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glowCyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feFlood flood-color="#00b4d8" flood-opacity="0.25"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glowGreen" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feFlood flood-color="#2ec4b6" flood-opacity="0.25"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1400" height="500" rx="8" fill="none"/>
+
+  <!-- Title -->
+  <text x="700" y="32" text-anchor="middle" fill="#c0c0d0" font-size="16" font-weight="600" letter-spacing="1">HLS WORKER POOL  —  3-STAGE PIPELINE ARCHITECTURE</text>
+
+  <!-- =========================================================== -->
+  <!-- MAIN THREAD LEFT                                              -->
+  <!-- =========================================================== -->
+  <rect x="18" y="155" width="108" height="80" rx="10" fill="none" stroke="#ffd166" stroke-width="2" filter="url(#glowYellow)"/>
+  <text x="72" y="185" text-anchor="middle" fill="#ffd166" font-size="13" font-weight="700">Main</text>
+  <text x="72" y="203" text-anchor="middle" fill="#ffd166" font-size="13" font-weight="700">Thread</text>
+  <!-- Arrow down from Main Thread to label -->
+  <line x1="72" y1="235" x2="72" y2="280" stroke="#ffd166" stroke-width="1.5" marker-end="url(#arrowDown)"/>
+  <text x="72" y="305" text-anchor="middle" fill="#ffd166" font-size="8.5" font-style="italic">avdHLSWorkerPool</text>
+  <text x="72" y="317" text-anchor="middle" fill="#ffd166" font-size="8.5" font-style="italic">SendSourceTask</text>
+
+  <!-- Arrow right from Main Thread to Channel 1 -->
+  <line x1="126" y1="195" x2="148" y2="195" stroke="#e0e0e0" stroke-width="1.5" marker-end="url(#arrowRight)"/>
+
+  <!-- =========================================================== -->
+  <!-- CHANNEL 1: sourceDownloadChannel                             -->
+  <!-- =========================================================== -->
+  <g transform="translate(158, 120)">
+    <!-- Channel pipe -->
+    <rect x="0" y="0" width="30" height="150" rx="6" fill="url(#chanGrad)" stroke="#6a6a8e" stroke-width="1.2"/>
+    <!-- Pipe notches -->
+    <line x1="0" y1="30" x2="30" y2="30" stroke="#6a6a8e" stroke-width="0.6" opacity="0.5"/>
+    <line x1="0" y1="60" x2="30" y2="60" stroke="#6a6a8e" stroke-width="0.6" opacity="0.5"/>
+    <line x1="0" y1="90" x2="30" y2="90" stroke="#6a6a8e" stroke-width="0.6" opacity="0.5"/>
+    <line x1="0" y1="120" x2="30" y2="120" stroke="#6a6a8e" stroke-width="0.6" opacity="0.5"/>
+    <!-- Dots flowing through -->
+    <circle cx="15" cy="45" r="3" fill="#ffd166" opacity="0.7"/>
+    <circle cx="15" cy="75" r="3" fill="#ffd166" opacity="0.5"/>
+    <circle cx="15" cy="105" r="3" fill="#ffd166" opacity="0.3"/>
+  </g>
+  <text x="173" y="290" text-anchor="middle" fill="#9a9ab0" font-size="8" font-weight="600">source</text>
+  <text x="173" y="301" text-anchor="middle" fill="#9a9ab0" font-size="8" font-weight="600">Download</text>
+  <text x="173" y="312" text-anchor="middle" fill="#9a9ab0" font-size="8" font-weight="600">Channel</text>
+
+  <!-- Arrow right from Channel 1 to Stage 1 -->
+  <line x1="188" y1="195" x2="210" y2="195" stroke="#e0e0e0" stroke-width="1.5" marker-end="url(#arrowRight)"/>
+
+  <!-- =========================================================== -->
+  <!-- STAGE 1: Source Download Workers                             -->
+  <!-- =========================================================== -->
+  <g filter="url(#glowBlue)">
+    <rect x="220" y="85" width="208" height="230" rx="12" fill="#1e2247" stroke="#4361ee" stroke-width="2"/>
+  </g>
+  <!-- Header bar -->
+  <rect x="220" y="85" width="208" height="38" rx="12" fill="#4361ee"/>
+  <rect x="220" y="105" width="208" height="18" fill="#4361ee"/>
+  <text x="324" y="108" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">Source Download</text>
+  <text x="324" y="120" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">Workers (x2)</text>
+  <!-- Stage label -->
+  <text x="236" y="97" fill="rgba(255,255,255,0.5)" font-size="8" font-weight="600">STAGE 1</text>
+  <!-- Items -->
+  <circle cx="240" cy="150" r="3" fill="#4361ee"/>
+  <text x="250" y="154" fill="#c8d0e8" font-size="10.5">Fetch M3U8 playlist (curl)</text>
+  <circle cx="240" cy="175" r="3" fill="#4361ee"/>
+  <text x="250" y="179" fill="#c8d0e8" font-size="10.5">Parse with picoM3U8</text>
+  <circle cx="240" cy="200" r="3" fill="#4361ee"/>
+  <text x="250" y="204" fill="#c8d0e8" font-size="10.5">Resolve segment URLs</text>
+  <circle cx="240" cy="225" r="3" fill="#4361ee"/>
+  <text x="250" y="229" fill="#c8d0e8" font-size="10.5">Insert URLs to pool</text>
+  <!-- Worker icons -->
+  <g transform="translate(240, 255)">
+    <rect x="0" y="0" width="50" height="22" rx="4" fill="none" stroke="#4361ee" stroke-width="1" opacity="0.6"/>
+    <text x="25" y="15" text-anchor="middle" fill="#4361ee" font-size="8" opacity="0.8">W-1</text>
+  </g>
+  <g transform="translate(300, 255)">
+    <rect x="0" y="0" width="50" height="22" rx="4" fill="none" stroke="#4361ee" stroke-width="1" opacity="0.6"/>
+    <text x="25" y="15" text-anchor="middle" fill="#4361ee" font-size="8" opacity="0.8">W-2</text>
+  </g>
+
+  <!-- Arrow right from Stage 1 to Channel 2 -->
+  <line x1="428" y1="195" x2="450" y2="195" stroke="#e0e0e0" stroke-width="1.5" marker-end="url(#arrowRight)"/>
+
+  <!-- =========================================================== -->
+  <!-- CHANNEL 2: mediaDownloadChannel                              -->
+  <!-- =========================================================== -->
+  <g transform="translate(460, 120)">
+    <rect x="0" y="0" width="30" height="150" rx="6" fill="url(#chanGrad)" stroke="#6a6a8e" stroke-width="1.2"/>
+    <line x1="0" y1="30" x2="30" y2="30" stroke="#6a6a8e" stroke-width="0.6" opacity="0.5"/>
+    <line x1="0" y1="60" x2="30" y2="60" stroke="#6a6a8e" stroke-width="0.6" opacity="0.5"/>
+    <line x1="0" y1="90" x2="30" y2="90" stroke="#6a6a8e" stroke-width="0.6" opacity="0.5"/>
+    <line x1="0" y1="120" x2="30" y2="120" stroke="#6a6a8e" stroke-width="0.6" opacity="0.5"/>
+    <circle cx="15" cy="45" r="3" fill="#4361ee" opacity="0.7"/>
+    <circle cx="15" cy="75" r="3" fill="#4361ee" opacity="0.5"/>
+    <circle cx="15" cy="105" r="3" fill="#4361ee" opacity="0.3"/>
+  </g>
+  <text x="475" y="290" text-anchor="middle" fill="#9a9ab0" font-size="8" font-weight="600">media</text>
+  <text x="475" y="301" text-anchor="middle" fill="#9a9ab0" font-size="8" font-weight="600">Download</text>
+  <text x="475" y="312" text-anchor="middle" fill="#9a9ab0" font-size="8" font-weight="600">Channel</text>
+
+  <!-- Arrow right from Channel 2 to Stage 2 -->
+  <line x1="490" y1="195" x2="512" y2="195" stroke="#e0e0e0" stroke-width="1.5" marker-end="url(#arrowRight)"/>
+
+  <!-- =========================================================== -->
+  <!-- STAGE 2: Media Download Workers                              -->
+  <!-- =========================================================== -->
+  <g filter="url(#glowCyan)">
+    <rect x="522" y="85" width="208" height="230" rx="12" fill="#0d2733" stroke="#00b4d8" stroke-width="2"/>
+  </g>
+  <!-- Header bar -->
+  <rect x="522" y="85" width="208" height="38" rx="12" fill="#00b4d8"/>
+  <rect x="522" y="105" width="208" height="18" fill="#00b4d8"/>
+  <text x="626" y="108" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">Media Download</text>
+  <text x="626" y="120" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">Workers (x8)</text>
+  <!-- Stage label -->
+  <text x="538" y="97" fill="rgba(255,255,255,0.5)" font-size="8" font-weight="600">STAGE 2</text>
+  <!-- Items -->
+  <circle cx="542" cy="155" r="3" fill="#00b4d8"/>
+  <text x="552" y="159" fill="#b0dce8" font-size="10.5">Check media cache</text>
+  <circle cx="542" cy="185" r="3" fill="#00b4d8"/>
+  <text x="552" y="189" fill="#b0dce8" font-size="10.5">Download MPEG-TS (curl)</text>
+  <circle cx="542" cy="215" r="3" fill="#00b4d8"/>
+  <text x="552" y="219" fill="#b0dce8" font-size="10.5">Cache downloaded data</text>
+  <!-- Worker icons -->
+  <g transform="translate(535, 248)">
+    <rect x="0" y="0" width="38" height="20" rx="4" fill="none" stroke="#00b4d8" stroke-width="1" opacity="0.5"/>
+    <text x="19" y="14" text-anchor="middle" fill="#00b4d8" font-size="7" opacity="0.7">W-1</text>
+  </g>
+  <g transform="translate(578, 248)">
+    <rect x="0" y="0" width="38" height="20" rx="4" fill="none" stroke="#00b4d8" stroke-width="1" opacity="0.5"/>
+    <text x="19" y="14" text-anchor="middle" fill="#00b4d8" font-size="7" opacity="0.7">W-2</text>
+  </g>
+  <g transform="translate(621, 248)">
+    <rect x="0" y="0" width="38" height="20" rx="4" fill="none" stroke="#00b4d8" stroke-width="1" opacity="0.5"/>
+    <text x="19" y="14" text-anchor="middle" fill="#00b4d8" font-size="7" opacity="0.7">W-3</text>
+  </g>
+  <g transform="translate(664, 248)">
+    <rect x="0" y="0" width="38" height="20" rx="4" fill="none" stroke="#00b4d8" stroke-width="1" opacity="0.5"/>
+    <text x="19" y="14" text-anchor="middle" fill="#00b4d8" font-size="7" opacity="0.7">W-4</text>
+  </g>
+  <g transform="translate(535, 273)">
+    <rect x="0" y="0" width="38" height="20" rx="4" fill="none" stroke="#00b4d8" stroke-width="1" opacity="0.5"/>
+    <text x="19" y="14" text-anchor="middle" fill="#00b4d8" font-size="7" opacity="0.7">W-5</text>
+  </g>
+  <g transform="translate(578, 273)">
+    <rect x="0" y="0" width="38" height="20" rx="4" fill="none" stroke="#00b4d8" stroke-width="1" opacity="0.5"/>
+    <text x="19" y="14" text-anchor="middle" fill="#00b4d8" font-size="7" opacity="0.7">W-6</text>
+  </g>
+  <g transform="translate(621, 273)">
+    <rect x="0" y="0" width="38" height="20" rx="4" fill="none" stroke="#00b4d8" stroke-width="1" opacity="0.5"/>
+    <text x="19" y="14" text-anchor="middle" fill="#00b4d8" font-size="7" opacity="0.7">W-7</text>
+  </g>
+  <g transform="translate(664, 273)">
+    <rect x="0" y="0" width="38" height="20" rx="4" fill="none" stroke="#00b4d8" stroke-width="1" opacity="0.5"/>
+    <text x="19" y="14" text-anchor="middle" fill="#00b4d8" font-size="7" opacity="0.7">W-8</text>
+  </g>
+
+  <!-- Arrow right from Stage 2 to Channel 3 -->
+  <line x1="730" y1="195" x2="752" y2="195" stroke="#e0e0e0" stroke-width="1.5" marker-end="url(#arrowRight)"/>
+
+  <!-- =========================================================== -->
+  <!-- CHANNEL 3: mediaDemuxChannel                                 -->
+  <!-- =========================================================== -->
+  <g transform="translate(762, 120)">
+    <rect x="0" y="0" width="30" height="150" rx="6" fill="url(#chanGrad)" stroke="#6a6a8e" stroke-width="1.2"/>
+    <line x1="0" y1="30" x2="30" y2="30" stroke="#6a6a8e" stroke-width="0.6" opacity="0.5"/>
+    <line x1="0" y1="60" x2="30" y2="60" stroke="#6a6a8e" stroke-width="0.6" opacity="0.5"/>
+    <line x1="0" y1="90" x2="30" y2="90" stroke="#6a6a8e" stroke-width="0.6" opacity="0.5"/>
+    <line x1="0" y1="120" x2="30" y2="120" stroke="#6a6a8e" stroke-width="0.6" opacity="0.5"/>
+    <circle cx="15" cy="45" r="3" fill="#00b4d8" opacity="0.7"/>
+    <circle cx="15" cy="75" r="3" fill="#00b4d8" opacity="0.5"/>
+    <circle cx="15" cy="105" r="3" fill="#00b4d8" opacity="0.3"/>
+  </g>
+  <text x="777" y="290" text-anchor="middle" fill="#9a9ab0" font-size="8" font-weight="600">media</text>
+  <text x="777" y="301" text-anchor="middle" fill="#9a9ab0" font-size="8" font-weight="600">Demux</text>
+  <text x="777" y="312" text-anchor="middle" fill="#9a9ab0" font-size="8" font-weight="600">Channel</text>
+
+  <!-- Arrow right from Channel 3 to Stage 3 -->
+  <line x1="792" y1="195" x2="814" y2="195" stroke="#e0e0e0" stroke-width="1.5" marker-end="url(#arrowRight)"/>
+
+  <!-- =========================================================== -->
+  <!-- STAGE 3: Media Demux Workers                                 -->
+  <!-- =========================================================== -->
+  <g filter="url(#glowGreen)">
+    <rect x="824" y="85" width="228" height="230" rx="12" fill="#132e2b" stroke="#2ec4b6" stroke-width="2"/>
+  </g>
+  <!-- Header bar -->
+  <rect x="824" y="85" width="228" height="38" rx="12" fill="#2ec4b6"/>
+  <rect x="824" y="105" width="228" height="18" fill="#2ec4b6"/>
+  <text x="938" y="108" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">Media Demux</text>
+  <text x="938" y="120" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">Workers (x2)</text>
+  <!-- Stage label -->
+  <text x="840" y="97" fill="rgba(255,255,255,0.5)" font-size="8" font-weight="600">STAGE 3</text>
+  <!-- Items -->
+  <circle cx="844" cy="150" r="3" fill="#2ec4b6"/>
+  <text x="854" y="154" fill="#b0e8e0" font-size="10.5">Parse with picoMpegTS</text>
+  <circle cx="844" cy="175" r="3" fill="#2ec4b6"/>
+  <text x="854" y="179" fill="#b0e8e0" font-size="10.5">Extract H.264 PES</text>
+  <circle cx="844" cy="200" r="3" fill="#2ec4b6"/>
+  <text x="854" y="204" fill="#b0e8e0" font-size="10.5">Extract AAC ADTS PES</text>
+  <circle cx="844" cy="225" r="3" fill="#2ec4b6"/>
+  <text x="854" y="229" fill="#b0e8e0" font-size="10.5">Split to AVD_HLSSegmentAVData</text>
+  <!-- Worker icons -->
+  <g transform="translate(855, 255)">
+    <rect x="0" y="0" width="50" height="22" rx="4" fill="none" stroke="#2ec4b6" stroke-width="1" opacity="0.6"/>
+    <text x="25" y="15" text-anchor="middle" fill="#2ec4b6" font-size="8" opacity="0.8">W-1</text>
+  </g>
+  <g transform="translate(915, 255)">
+    <rect x="0" y="0" width="50" height="22" rx="4" fill="none" stroke="#2ec4b6" stroke-width="1" opacity="0.6"/>
+    <text x="25" y="15" text-anchor="middle" fill="#2ec4b6" font-size="8" opacity="0.8">W-2</text>
+  </g>
+
+  <!-- Arrow right from Stage 3 to Channel 4 -->
+  <line x1="1052" y1="195" x2="1074" y2="195" stroke="#e0e0e0" stroke-width="1.5" marker-end="url(#arrowRight)"/>
+
+  <!-- =========================================================== -->
+  <!-- CHANNEL 4: mediaReadyChannel                                 -->
+  <!-- =========================================================== -->
+  <g transform="translate(1084, 120)">
+    <rect x="0" y="0" width="30" height="150" rx="6" fill="url(#chanGrad)" stroke="#6a6a8e" stroke-width="1.2"/>
+    <line x1="0" y1="30" x2="30" y2="30" stroke="#6a6a8e" stroke-width="0.6" opacity="0.5"/>
+    <line x1="0" y1="60" x2="30" y2="60" stroke="#6a6a8e" stroke-width="0.6" opacity="0.5"/>
+    <line x1="0" y1="90" x2="30" y2="90" stroke="#6a6a8e" stroke-width="0.6" opacity="0.5"/>
+    <line x1="0" y1="120" x2="30" y2="120" stroke="#6a6a8e" stroke-width="0.6" opacity="0.5"/>
+    <circle cx="15" cy="45" r="3" fill="#2ec4b6" opacity="0.7"/>
+    <circle cx="15" cy="75" r="3" fill="#2ec4b6" opacity="0.5"/>
+    <circle cx="15" cy="105" r="3" fill="#2ec4b6" opacity="0.3"/>
+  </g>
+  <text x="1099" y="290" text-anchor="middle" fill="#9a9ab0" font-size="8" font-weight="600">media</text>
+  <text x="1099" y="301" text-anchor="middle" fill="#9a9ab0" font-size="8" font-weight="600">Ready</text>
+  <text x="1099" y="312" text-anchor="middle" fill="#9a9ab0" font-size="8" font-weight="600">Channel</text>
+
+  <!-- Arrow right from Channel 4 to Main Thread Right -->
+  <line x1="1114" y1="195" x2="1136" y2="195" stroke="#e0e0e0" stroke-width="1.5" marker-end="url(#arrowRight)"/>
+
+  <!-- =========================================================== -->
+  <!-- MAIN THREAD RIGHT                                            -->
+  <!-- =========================================================== -->
+  <rect x="1146" y="120" width="235" height="210" rx="12" fill="none" stroke="#ffd166" stroke-width="2" filter="url(#glowYellow)"/>
+  <!-- Header -->
+  <text x="1264" y="148" text-anchor="middle" fill="#ffd166" font-size="14" font-weight="700">Main Thread</text>
+  <line x1="1160" y1="158" x2="1367" y2="158" stroke="#ffd166" stroke-width="0.5" opacity="0.4"/>
+
+  <!-- Arrow up label -->
+  <line x1="1200" y1="210" x2="1200" y2="175" stroke="#ffd166" stroke-width="1.5" marker-end="url(#arrowUp)"/>
+  <text x="1215" y="187" fill="#ffd166" font-size="8" font-style="italic">avdHLSWorkerPool</text>
+  <text x="1215" y="199" fill="#ffd166" font-size="8" font-style="italic">ReceiveReadySegment</text>
+
+  <!-- Segment Store box -->
+  <rect x="1162" y="220" width="205" height="96" rx="8" fill="#2a2a3e" stroke="#ffd166" stroke-width="1" opacity="0.7"/>
+  <text x="1264" y="243" text-anchor="middle" fill="#ffd166" font-size="11" font-weight="600">Segment Store</text>
+  <line x1="1172" y1="251" x2="1357" y2="251" stroke="#ffd166" stroke-width="0.4" opacity="0.3"/>
+  <!-- Segment slots -->
+  <rect x="1172" y="259" width="42" height="18" rx="3" fill="#3d3455" stroke="#ffd166" stroke-width="0.6" opacity="0.5"/>
+  <text x="1193" y="272" text-anchor="middle" fill="#e0d0a0" font-size="7">seg 0</text>
+  <rect x="1220" y="259" width="42" height="18" rx="3" fill="#3d3455" stroke="#ffd166" stroke-width="0.6" opacity="0.5"/>
+  <text x="1241" y="272" text-anchor="middle" fill="#e0d0a0" font-size="7">seg 1</text>
+  <rect x="1268" y="259" width="42" height="18" rx="3" fill="#3d3455" stroke="#ffd166" stroke-width="0.6" opacity="0.5"/>
+  <text x="1289" y="272" text-anchor="middle" fill="#e0d0a0" font-size="7">seg 2</text>
+  <rect x="1316" y="259" width="42" height="18" rx="3" fill="#3d3455" stroke="#ffd166" stroke-width="0.6" opacity="0.5"/>
+  <text x="1337" y="272" text-anchor="middle" fill="#e0d0a0" font-size="7">seg N</text>
+  <!-- Data labels -->
+  <text x="1193" y="300" text-anchor="middle" fill="#8a8aa0" font-size="7">H.264</text>
+  <text x="1289" y="300" text-anchor="middle" fill="#8a8aa0" font-size="7">AAC</text>
+  <text x="1241" y="300" text-anchor="middle" fill="#8a8aa0" font-size="7">+</text>
+  <text x="1337" y="300" text-anchor="middle" fill="#8a8aa0" font-size="7">...</text>
+
+  <!-- =========================================================== -->
+  <!-- BOTTOM: Pipeline flow legend                                  -->
+  <!-- =========================================================== -->
+  <g transform="translate(0, 0)">
+    <!-- Flow direction indicator -->
+    <text x="50" y="385" fill="#6a6a8e" font-size="10" font-weight="600">DATA FLOW</text>
+    <line x1="110" y1="382" x2="200" y2="382" stroke="#6a6a8e" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowRight)"/>
+
+    <!-- Legend items -->
+    <rect x="260" y="373" width="14" height="14" rx="3" fill="#4361ee"/>
+    <text x="280" y="384" fill="#8a8aa0" font-size="9">Download + Parse</text>
+
+    <rect x="400" y="373" width="14" height="14" rx="3" fill="#00b4d8"/>
+    <text x="420" y="384" fill="#8a8aa0" font-size="9">Fetch + Cache</text>
+
+    <rect x="520" y="373" width="14" height="14" rx="3" fill="#2ec4b6"/>
+    <text x="540" y="384" fill="#8a8aa0" font-size="9">Demux + Split</text>
+
+    <rect x="660" y="373" width="14" height="14" rx="3" fill="url(#chanGrad)" stroke="#6a6a8e" stroke-width="0.8"/>
+    <text x="680" y="384" fill="#8a8aa0" font-size="9">Thread-safe Channel</text>
+
+    <rect x="830" y="373" width="14" height="14" rx="3" fill="none" stroke="#ffd166" stroke-width="1.2"/>
+    <text x="850" y="384" fill="#8a8aa0" font-size="9">Main Thread Boundary</text>
+  </g>
+
+  <!-- Bottom summary text -->
+  <text x="700" y="430" text-anchor="middle" fill="#5a5a7e" font-size="9">M3U8 URL  -->  Source Workers (x2)  -->  Media Workers (x8)  -->  Demux Workers (x2)  -->  Ready Segments</text>
+  <text x="700" y="448" text-anchor="middle" fill="#4a4a6e" font-size="8">Total: 12 background worker threads  |  4 thread-safe channels  |  Lock-free pipeline</text>
+
+  <!-- Decorative corner marks -->
+  <line x1="10" y1="48" x2="1390" y2="48" stroke="#2a2a4e" stroke-width="0.5"/>
+  <line x1="10" y1="460" x2="1390" y2="460" stroke="#2a2a4e" stroke-width="0.5"/>
+</svg>

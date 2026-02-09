@@ -1,0 +1,368 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <defs>
+    <style>
+      text { font-family: 'Segoe UI', Consolas, Arial, sans-serif; }
+      .title { font-size: 22px; font-weight: bold; fill: #e0e0e0; }
+      .section-title { font-size: 16px; font-weight: bold; fill: #c0c0c0; }
+      .label { font-size: 11px; fill: #e0e0e0; }
+      .label-small { font-size: 9px; fill: #e0e0e0; }
+      .label-tiny { font-size: 8px; fill: #d0d0d0; }
+      .size-annotation { font-size: 9px; fill: #aaaaaa; font-style: italic; }
+      .mono { font-family: Consolas, 'Courier New', monospace; }
+      .field-label { font-size: 10px; fill: #ffffff; font-weight: bold; }
+      .field-label-dark { font-size: 10px; fill: #1a1a2e; font-weight: bold; }
+      .connector { stroke: #555555; stroke-width: 1; stroke-dasharray: 4,3; fill: none; }
+      .arrow { stroke: #888888; stroke-width: 1.5; fill: none; marker-end: url(#arrowhead); }
+      .arrow-colored { stroke-width: 1.5; fill: none; marker-end: url(#arrowhead-blue); }
+      .bracket { stroke: #777777; stroke-width: 1.5; fill: none; }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#888888"/>
+    </marker>
+    <marker id="arrowhead-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4fc3f7"/>
+    </marker>
+    <marker id="arrowhead-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#66bb6a"/>
+    </marker>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#12122a;stop-opacity:1"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="800" fill="none" rx="8"/>
+  <rect x="0" y="0" width="1200" height="800" fill="none" stroke="#2a2a4e" stroke-width="2" rx="8"/>
+
+  <!-- Title -->
+  <text x="600" y="35" text-anchor="middle" class="title">MPEG-2 Transport Stream (TS) Packet Structure</text>
+  <line x1="200" y1="48" x2="1000" y2="48" stroke="#3a3a5e" stroke-width="1"/>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: Transport Stream (multiple packets in sequence)    -->
+  <!-- ============================================================ -->
+  <text x="50" y="80" class="section-title">Transport Stream</text>
+  <text x="340" y="80" class="size-annotation">(continuous sequence of 188-byte packets)</text>
+
+  <!-- Packet sequence bar -->
+  <!-- Packet 1 -->
+  <rect x="50" y="90" width="140" height="45" rx="3" fill="#e74c3c" opacity="0.85"/>
+  <text x="120" y="110" text-anchor="middle" class="field-label">TS Packet 1</text>
+  <text x="120" y="124" text-anchor="middle" class="label-small" opacity="0.8">188 bytes</text>
+  <!-- Packet 2 -->
+  <rect x="194" y="90" width="140" height="45" rx="3" fill="#3498db" opacity="0.85"/>
+  <text x="264" y="110" text-anchor="middle" class="field-label">TS Packet 2</text>
+  <text x="264" y="124" text-anchor="middle" class="label-small" opacity="0.8">188 bytes</text>
+  <!-- Packet 3 -->
+  <rect x="338" y="90" width="140" height="45" rx="3" fill="#e67e22" opacity="0.85"/>
+  <text x="408" y="110" text-anchor="middle" class="field-label">TS Packet 3</text>
+  <text x="408" y="124" text-anchor="middle" class="label-small" opacity="0.8">188 bytes</text>
+  <!-- Packet 4 -->
+  <rect x="482" y="90" width="140" height="45" rx="3" fill="#9b59b6" opacity="0.85"/>
+  <text x="552" y="110" text-anchor="middle" class="field-label">TS Packet 4</text>
+  <text x="552" y="124" text-anchor="middle" class="label-small" opacity="0.8">188 bytes</text>
+  <!-- Packet 5 -->
+  <rect x="626" y="90" width="140" height="45" rx="3" fill="#27ae60" opacity="0.85"/>
+  <text x="696" y="110" text-anchor="middle" class="field-label">TS Packet 5</text>
+  <text x="696" y="124" text-anchor="middle" class="label-small" opacity="0.8">188 bytes</text>
+  <!-- Packet 6 -->
+  <rect x="770" y="90" width="140" height="45" rx="3" fill="#e74c3c" opacity="0.85"/>
+  <text x="840" y="110" text-anchor="middle" class="field-label">TS Packet 6</text>
+  <text x="840" y="124" text-anchor="middle" class="label-small" opacity="0.8">188 bytes</text>
+  <!-- Ellipsis -->
+  <text x="940" y="118" class="label" fill="#888888" font-size="20">...</text>
+  <!-- Packet N -->
+  <rect x="980" y="90" width="140" height="45" rx="3" fill="#3498db" opacity="0.85"/>
+  <text x="1050" y="110" text-anchor="middle" class="field-label">TS Packet N</text>
+  <text x="1050" y="124" text-anchor="middle" class="label-small" opacity="0.8">188 bytes</text>
+
+  <!-- Zoom connector from Packet 3 to the detail view below -->
+  <line x1="338" y1="135" x2="50" y2="175" class="connector"/>
+  <line x1="478" y1="135" x2="1150" y2="175" class="connector"/>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: Single TS Packet detail (zoomed-in view)           -->
+  <!-- ============================================================ -->
+  <text x="50" y="172" class="section-title">Single TS Packet (188 bytes = 4-byte header + up to 184 bytes payload)</text>
+
+  <!-- Outer packet border -->
+  <rect x="50" y="180" width="1100" height="75" rx="4" fill="none" stroke="#555577" stroke-width="2"/>
+
+  <!-- Header section label on top -->
+  <!-- 4-byte Header bracket -->
+  <line x1="50" y1="178" x2="50" y2="172" class="bracket"/>
+  <line x1="50" y1="172" x2="355" y2="172" stroke="#777777" stroke-width="0" fill="none"/>
+  <line x1="355" y1="178" x2="355" y2="172" class="bracket"/>
+
+  <!-- Field: Sync Byte (1 byte = 8 bits) - RED -->
+  <rect x="50" y="180" width="80" height="75" rx="3" fill="#c0392b"/>
+  <text x="90" y="209" text-anchor="middle" class="field-label" font-size="11">Sync Byte</text>
+  <text x="90" y="224" text-anchor="middle" class="mono label-small" fill="#ffcccc">0x47</text>
+  <text x="90" y="248" text-anchor="middle" class="size-annotation" fill="#ffcccc">8 bits (1 byte)</text>
+
+  <!-- Field: TEI (1 bit) - GRAY -->
+  <rect x="132" y="180" width="38" height="75" rx="3" fill="#555566"/>
+  <text x="151" y="209" text-anchor="middle" class="field-label" font-size="9">TEI</text>
+  <text x="151" y="248" text-anchor="middle" class="size-annotation">1 bit</text>
+
+  <!-- Field: PUSI (1 bit) - YELLOW -->
+  <rect x="172" y="180" width="42" height="75" rx="3" fill="#f39c12"/>
+  <text x="193" y="209" text-anchor="middle" class="field-label-dark" font-size="9">PUSI</text>
+  <text x="193" y="248" text-anchor="middle" class="size-annotation" fill="#5a3800">1 bit</text>
+
+  <!-- Field: Priority (1 bit) - GRAY -->
+  <rect x="216" y="180" width="38" height="75" rx="3" fill="#555566"/>
+  <text x="235" y="205" text-anchor="middle" class="field-label" font-size="8">Trans.</text>
+  <text x="235" y="216" text-anchor="middle" class="field-label" font-size="8">Priority</text>
+  <text x="235" y="248" text-anchor="middle" class="size-annotation">1 bit</text>
+
+  <!-- Field: PID (13 bits) - BLUE -->
+  <rect x="256" y="180" width="130" height="75" rx="3" fill="#2980b9"/>
+  <text x="321" y="209" text-anchor="middle" class="field-label" font-size="12">PID</text>
+  <text x="321" y="226" text-anchor="middle" class="mono label-small" fill="#bbddff">Packet Identifier</text>
+  <text x="321" y="248" text-anchor="middle" class="size-annotation" fill="#bbddff">13 bits</text>
+
+  <!-- Field: Scrambling Control (2 bits) - GRAY -->
+  <rect x="388" y="180" width="56" height="75" rx="3" fill="#555566"/>
+  <text x="416" y="205" text-anchor="middle" class="field-label" font-size="8">Scramble</text>
+  <text x="416" y="216" text-anchor="middle" class="field-label" font-size="8">Control</text>
+  <text x="416" y="248" text-anchor="middle" class="size-annotation">2 bits</text>
+
+  <!-- Field: Adaptation Field Control (2 bits) - GREEN -->
+  <rect x="446" y="180" width="62" height="75" rx="3" fill="#27ae60"/>
+  <text x="477" y="200" text-anchor="middle" class="field-label" font-size="8">Adapt.</text>
+  <text x="477" y="211" text-anchor="middle" class="field-label" font-size="8">Field</text>
+  <text x="477" y="222" text-anchor="middle" class="field-label" font-size="8">Control</text>
+  <text x="477" y="248" text-anchor="middle" class="size-annotation" fill="#ccffcc">2 bits</text>
+
+  <!-- Field: Continuity Counter (4 bits) - PURPLE -->
+  <rect x="510" y="180" width="68" height="75" rx="3" fill="#8e44ad"/>
+  <text x="544" y="205" text-anchor="middle" class="field-label" font-size="8">Continuity</text>
+  <text x="544" y="216" text-anchor="middle" class="field-label" font-size="8">Counter</text>
+  <text x="544" y="248" text-anchor="middle" class="size-annotation" fill="#ddbbff">4 bits</text>
+
+  <!-- 4-byte header brace annotation -->
+  <line x1="52" y1="262" x2="52" y2="270" stroke="#aaaaaa" stroke-width="1"/>
+  <line x1="52" y1="270" x2="575" y2="270" stroke="#aaaaaa" stroke-width="1"/>
+  <line x1="575" y1="262" x2="575" y2="270" stroke="#aaaaaa" stroke-width="1"/>
+  <text x="314" y="284" text-anchor="middle" class="size-annotation" font-size="10">4-byte Header (32 bits)</text>
+
+  <!-- Field: Adaptation Field (variable) - GREEN outline -->
+  <rect x="580" y="180" width="160" height="75" rx="3" fill="none" stroke="#27ae60" stroke-width="2" stroke-dasharray="6,3"/>
+  <rect x="580" y="180" width="160" height="75" rx="3" fill="#27ae60" opacity="0.12"/>
+  <text x="660" y="205" text-anchor="middle" class="label" fill="#66bb6a" font-size="11">[Adaptation</text>
+  <text x="660" y="220" text-anchor="middle" class="label" fill="#66bb6a" font-size="11">Field]</text>
+  <text x="660" y="248" text-anchor="middle" class="size-annotation" fill="#66bb6a">variable (optional)</text>
+
+  <!-- Field: Payload (variable, up to 184 bytes) - ORANGE -->
+  <rect x="742" y="180" width="408" height="75" rx="3" fill="#d35400" opacity="0.9"/>
+  <text x="946" y="209" text-anchor="middle" class="field-label" font-size="14">Payload Data</text>
+  <text x="946" y="228" text-anchor="middle" class="label-small" fill="#ffdab9">Contains PES packets or PSI table sections</text>
+  <text x="946" y="248" text-anchor="middle" class="size-annotation" fill="#ffdab9">variable (up to 184 bytes)</text>
+
+  <!-- Payload brace annotation -->
+  <line x1="582" y1="262" x2="582" y2="296" stroke="#aaaaaa" stroke-width="1"/>
+  <line x1="582" y1="296" x2="1148" y2="296" stroke="#aaaaaa" stroke-width="1"/>
+  <line x1="1148" y1="262" x2="1148" y2="296" stroke="#aaaaaa" stroke-width="1"/>
+  <text x="865" y="310" text-anchor="middle" class="size-annotation" font-size="10">Payload Area (up to 184 bytes)</text>
+
+  <!-- Connector lines from payload to bottom sections -->
+  <!-- To PSI Tables (bottom left) -->
+  <path d="M 750,310 L 750,340 Q 750,350 740,350 L 310,350 Q 300,350 300,360 L 300,380" stroke="#4fc3f7" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arrowhead-blue)"/>
+  <text x="480" y="348" text-anchor="middle" class="label-tiny" fill="#4fc3f7">if PID matches PSI</text>
+
+  <!-- To PES Packets (bottom right) -->
+  <path d="M 950,310 L 950,340 Q 950,350 960,350 L 1000,350 Q 1010,350 1010,360 L 1010,380" stroke="#66bb6a" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arrowhead-green)"/>
+  <text x="1020" y="348" text-anchor="middle" class="label-tiny" fill="#66bb6a">if PID matches stream</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: PSI Tables (Bottom Left)                           -->
+  <!-- ============================================================ -->
+  <rect x="40" y="385" width="530" height="385" rx="6" fill="#1e1e3a" stroke="#3a3a6e" stroke-width="1.5"/>
+  <text x="305" y="410" text-anchor="middle" class="section-title" fill="#4fc3f7">PSI Tables (Program Specific Information)</text>
+  <line x1="60" y1="420" x2="550" y2="420" stroke="#3a3a6e" stroke-width="1"/>
+
+  <!-- PAT Box -->
+  <rect x="60" y="435" width="220" height="130" rx="5" fill="#1a3a5c" stroke="#2980b9" stroke-width="1.5"/>
+  <rect x="60" y="435" width="220" height="28" rx="5" fill="#2980b9"/>
+  <rect x="60" y="450" width="220" height="13" fill="#2980b9"/>
+  <text x="170" y="454" text-anchor="middle" class="field-label" font-size="12">PAT</text>
+  <text x="170" y="469" text-anchor="middle" class="mono label-small" fill="#88bbee">Program Association Table</text>
+  <text x="170" y="485" text-anchor="middle" class="mono label-small" fill="#aaaacc">PID = 0x0000</text>
+
+  <text x="75" y="510" class="label-small" fill="#cccccc">Program 0   -> NIT PID</text>
+  <text x="75" y="527" class="label-small" fill="#eeddaa">Program 1   -> PMT PID 0x100</text>
+  <text x="75" y="544" class="label-small" fill="#eeddaa">Program 2   -> PMT PID 0x200</text>
+  <text x="75" y="558" class="label-small" fill="#888888">...</text>
+
+  <!-- Arrow from PAT to PMT -->
+  <path d="M 280,527 L 340,527" stroke="#f39c12" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M 280,544 L 310,544 Q 320,544 320,540 L 320,530 Q 320,527 330,527 L 340,527" stroke="#f39c12" stroke-width="1.5" fill="none"/>
+
+  <!-- PMT Box -->
+  <rect x="345" y="435" width="210" height="200" rx="5" fill="#1a3a2c" stroke="#27ae60" stroke-width="1.5"/>
+  <rect x="345" y="435" width="210" height="28" rx="5" fill="#27ae60"/>
+  <rect x="345" y="450" width="210" height="13" fill="#27ae60"/>
+  <text x="450" y="454" text-anchor="middle" class="field-label" font-size="12">PMT</text>
+  <text x="450" y="469" text-anchor="middle" class="mono label-small" fill="#88eeaa">Program Map Table</text>
+  <text x="450" y="485" text-anchor="middle" class="mono label-small" fill="#aaccaa">PID = 0x100 (example)</text>
+
+  <text x="358" y="510" class="label-small" fill="#cccccc">PCR PID: 0x101</text>
+
+  <line x1="355" y1="520" x2="545" y2="520" stroke="#336644" stroke-width="0.5"/>
+
+  <text x="358" y="536" class="label-small" fill="#bbbbbb">Stream Type  PID    Info</text>
+  <line x1="355" y1="541" x2="545" y2="541" stroke="#336644" stroke-width="0.5"/>
+
+  <!-- Video stream entry -->
+  <rect x="355" y="545" width="190" height="22" rx="2" fill="#e74c3c" opacity="0.2"/>
+  <text x="362" y="560" class="mono label-small" fill="#ff8888">0x1B (H.264)</text>
+  <text x="460" y="560" class="mono label-small" fill="#ff8888">0x101</text>
+  <text x="510" y="560" class="mono label-small" fill="#ff8888">Video</text>
+
+  <!-- Audio stream entry -->
+  <rect x="355" y="569" width="190" height="22" rx="2" fill="#3498db" opacity="0.2"/>
+  <text x="362" y="584" class="mono label-small" fill="#88bbff">0x0F (AAC)</text>
+  <text x="460" y="584" class="mono label-small" fill="#88bbff">0x102</text>
+  <text x="510" y="584" class="mono label-small" fill="#88bbff">Audio</text>
+
+  <!-- Subtitle entry -->
+  <rect x="355" y="593" width="190" height="22" rx="2" fill="#9b59b6" opacity="0.2"/>
+  <text x="362" y="608" class="mono label-small" fill="#bb99dd">0x06 (PES)</text>
+  <text x="460" y="608" class="mono label-small" fill="#bb99dd">0x103</text>
+  <text x="510" y="608" class="mono label-small" fill="#bb99dd">Subs</text>
+
+  <!-- Descriptors note -->
+  <text x="358" y="632" class="label-tiny" fill="#777799">+ Descriptors (language, codec info...)</text>
+
+  <!-- Demux Flow Diagram -->
+  <text x="60" y="590" class="section-title" font-size="13" fill="#aaaacc">Demux Flow:</text>
+
+  <rect x="60" y="600" width="120" height="28" rx="4" fill="#2a2a4e" stroke="#5555aa" stroke-width="1"/>
+  <text x="120" y="618" text-anchor="middle" class="label-small" fill="#aaaadd">Read PID</text>
+
+  <path d="M 180,614 L 200,614" stroke="#666688" stroke-width="1.2" fill="none" marker-end="url(#arrowhead)"/>
+
+  <rect x="208" y="600" width="120" height="28" rx="4" fill="#2a2a4e" stroke="#5555aa" stroke-width="1"/>
+  <text x="268" y="618" text-anchor="middle" class="label-small" fill="#aaaadd">Lookup in PAT</text>
+
+  <path d="M 120,628 L 120,642" stroke="#666688" stroke-width="1.2" fill="none" marker-end="url(#arrowhead)"/>
+
+  <rect x="60" y="648" width="120" height="28" rx="4" fill="#2a2a4e" stroke="#5555aa" stroke-width="1"/>
+  <text x="120" y="666" text-anchor="middle" class="label-small" fill="#aaaadd">Find PMT</text>
+
+  <path d="M 180,662 L 200,662" stroke="#666688" stroke-width="1.2" fill="none" marker-end="url(#arrowhead)"/>
+
+  <rect x="208" y="648" width="120" height="28" rx="4" fill="#2a2a4e" stroke="#5555aa" stroke-width="1"/>
+  <text x="268" y="666" text-anchor="middle" class="label-small" fill="#aaaadd">Get Stream PIDs</text>
+
+  <path d="M 120,676 L 120,692" stroke="#666688" stroke-width="1.2" fill="none" marker-end="url(#arrowhead)"/>
+
+  <rect x="60" y="698" width="268" height="28" rx="4" fill="#2a2a4e" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="194" y="716" text-anchor="middle" class="label-small" fill="#f0a050">Route packets by PID to correct decoder</text>
+
+  <!-- Key/Legend at bottom left corner -->
+  <text x="60" y="752" class="label-tiny" fill="#888888">PID 0x0000 = PAT | PID 0x0001 = CAT | PID 0x1FFF = Null</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: PES Packets (Bottom Right)                         -->
+  <!-- ============================================================ -->
+  <rect x="590" y="385" width="570" height="385" rx="6" fill="#1e1e3a" stroke="#3a3a6e" stroke-width="1.5"/>
+  <text x="875" y="410" text-anchor="middle" class="section-title" fill="#66bb6a">PES Packets (Packetized Elementary Stream)</text>
+  <line x1="610" y1="420" x2="1140" y2="420" stroke="#3a3a6e" stroke-width="1"/>
+
+  <!-- PES Packet structure -->
+  <rect x="610" y="435" width="535" height="60" rx="3" fill="none" stroke="#557755" stroke-width="1.5"/>
+
+  <!-- Start Code (3 bytes) -->
+  <rect x="610" y="435" width="80" height="60" rx="3" fill="#c0392b" opacity="0.85"/>
+  <text x="650" y="460" text-anchor="middle" class="field-label" font-size="9">Start Code</text>
+  <text x="650" y="475" text-anchor="middle" class="mono label-tiny" fill="#ffcccc">0x000001</text>
+  <text x="650" y="489" text-anchor="middle" class="size-annotation">3 bytes</text>
+
+  <!-- Stream ID (1 byte) -->
+  <rect x="692" y="435" width="72" height="60" rx="3" fill="#2980b9" opacity="0.85"/>
+  <text x="728" y="460" text-anchor="middle" class="field-label" font-size="9">Stream ID</text>
+  <text x="728" y="475" text-anchor="middle" class="mono label-tiny" fill="#bbddff">0xE0/0xC0</text>
+  <text x="728" y="489" text-anchor="middle" class="size-annotation" fill="#bbddff">1 byte</text>
+
+  <!-- PES Length (2 bytes) -->
+  <rect x="766" y="435" width="70" height="60" rx="3" fill="#555566"/>
+  <text x="801" y="456" text-anchor="middle" class="field-label" font-size="9">PES Pkt</text>
+  <text x="801" y="468" text-anchor="middle" class="field-label" font-size="9">Length</text>
+  <text x="801" y="489" text-anchor="middle" class="size-annotation">2 bytes</text>
+
+  <!-- PES Header / Flags -->
+  <rect x="838" y="435" width="90" height="60" rx="3" fill="#8e44ad" opacity="0.7"/>
+  <text x="883" y="456" text-anchor="middle" class="field-label" font-size="9">Flags &amp;</text>
+  <text x="883" y="468" text-anchor="middle" class="field-label" font-size="9">Header Data</text>
+  <text x="883" y="489" text-anchor="middle" class="size-annotation" fill="#ddbbff">variable</text>
+
+  <!-- PES Data / ES Data -->
+  <rect x="930" y="435" width="215" height="60" rx="3" fill="#d35400" opacity="0.85"/>
+  <text x="1037" y="460" text-anchor="middle" class="field-label" font-size="11">Elementary Stream Data</text>
+  <text x="1037" y="476" text-anchor="middle" class="label-small" fill="#ffdab9">H.264 NALUs / AAC Frames</text>
+  <text x="1037" y="489" text-anchor="middle" class="size-annotation" fill="#ffdab9">variable</text>
+
+  <!-- Stream ID Details -->
+  <rect x="610" y="510" width="240" height="100" rx="5" fill="#1a2a3a" stroke="#2980b9" stroke-width="1"/>
+  <text x="730" y="530" text-anchor="middle" class="label" fill="#4fc3f7" font-weight="bold" font-size="11">Stream ID Values</text>
+  <line x1="620" y1="537" x2="840" y2="537" stroke="#2a4a6a" stroke-width="0.5"/>
+  <text x="625" y="553" class="mono label-small" fill="#ff8888">0xE0 - 0xEF  Video Stream</text>
+  <text x="625" y="569" class="mono label-small" fill="#88bbff">0xC0 - 0xDF  Audio Stream</text>
+  <text x="625" y="585" class="mono label-small" fill="#bb99dd">0xBD         Private Stream 1</text>
+  <text x="625" y="601" class="mono label-small" fill="#aaaaaa">0xBE         Padding Stream</text>
+
+  <!-- PTS/DTS Timestamp detail -->
+  <rect x="865" y="510" width="280" height="100" rx="5" fill="#1a2a1a" stroke="#27ae60" stroke-width="1"/>
+  <text x="1005" y="530" text-anchor="middle" class="label" fill="#66bb6a" font-weight="bold" font-size="11">PTS / DTS Timestamps</text>
+  <line x1="875" y1="537" x2="1135" y2="537" stroke="#2a4a2a" stroke-width="0.5"/>
+
+  <text x="880" y="555" class="label-small" fill="#88eeaa">PTS (Presentation Time Stamp)</text>
+  <text x="895" y="570" class="label-tiny" fill="#aaccaa">When to display the decoded frame</text>
+  <text x="895" y="583" class="mono label-tiny" fill="#669966">33 bits, 90kHz clock</text>
+
+  <text x="880" y="600" class="label-small" fill="#eecc88">DTS (Decoding Time Stamp)</text>
+  <text x="895" y="614" class="label-tiny" fill="#ccaa88">When to decode (may differ from PTS for B-frames)</text>
+
+  <!-- H.264 NAL Unit detail -->
+  <rect x="610" y="625" width="250" height="140" rx="5" fill="#2a1a1a" stroke="#e74c3c" stroke-width="1"/>
+  <text x="735" y="645" text-anchor="middle" class="label" fill="#ff6666" font-weight="bold" font-size="11">H.264 / AVC (Video)</text>
+  <line x1="620" y1="652" x2="850" y2="652" stroke="#4a2a2a" stroke-width="0.5"/>
+
+  <text x="625" y="670" class="label-small" fill="#ddaaaa">NAL Unit Types in ES Data:</text>
+  <rect x="625" y="678" width="12" height="12" rx="2" fill="#e74c3c" opacity="0.5"/>
+  <text x="645" y="689" class="label-tiny" fill="#cccccc">Type 1/5 - Coded Slice (IDR/non-IDR)</text>
+  <rect x="625" y="695" width="12" height="12" rx="2" fill="#e67e22" opacity="0.5"/>
+  <text x="645" y="706" class="label-tiny" fill="#cccccc">Type 7   - SPS (Sequence Param Set)</text>
+  <rect x="625" y="712" width="12" height="12" rx="2" fill="#f39c12" opacity="0.5"/>
+  <text x="645" y="723" class="label-tiny" fill="#cccccc">Type 8   - PPS (Picture Param Set)</text>
+  <rect x="625" y="729" width="12" height="12" rx="2" fill="#9b59b6" opacity="0.5"/>
+  <text x="645" y="740" class="label-tiny" fill="#cccccc">Type 6   - SEI (Supplemental Info)</text>
+  <text x="625" y="758" class="label-tiny" fill="#887777">Separated by start codes: 0x00000001</text>
+
+  <!-- AAC detail -->
+  <rect x="875" y="625" width="270" height="140" rx="5" fill="#1a1a2a" stroke="#3498db" stroke-width="1"/>
+  <text x="1010" y="645" text-anchor="middle" class="label" fill="#4fc3f7" font-weight="bold" font-size="11">AAC / MPEG Audio</text>
+  <line x1="885" y1="652" x2="1135" y2="652" stroke="#2a2a4a" stroke-width="0.5"/>
+
+  <text x="890" y="670" class="label-small" fill="#aabbdd">ADTS Frame Structure:</text>
+
+  <!-- Mini ADTS frame diagram -->
+  <rect x="890" y="678" width="60" height="22" rx="2" fill="#e74c3c" opacity="0.6"/>
+  <text x="920" y="693" text-anchor="middle" class="label-tiny" fill="#eedddd">Sync</text>
+  <rect x="952" y="678" width="55" height="22" rx="2" fill="#2980b9" opacity="0.6"/>
+  <text x="979" y="693" text-anchor="middle" class="label-tiny" fill="#ddeeff">Header</text>
+  <rect x="1009" y="678" width="120" height="22" rx="2" fill="#d35400" opacity="0.6"/>
+  <text x="1069" y="693" text-anchor="middle" class="label-tiny" fill="#ffeedd">AAC Frame Data</text>
+
+  <text x="890" y="718" class="label-tiny" fill="#aabbdd">Sync word: 0xFFF</text>
+  <text x="890" y="732" class="label-tiny" fill="#aabbdd">Profile: LC-AAC / HE-AAC</text>
+  <text x="890" y="746" class="label-tiny" fill="#aabbdd">Sample Rate: 44100 / 48000 Hz</text>
+  <text x="890" y="760" class="label-tiny" fill="#aabbdd">Channels: Stereo / 5.1</text>
+</svg>

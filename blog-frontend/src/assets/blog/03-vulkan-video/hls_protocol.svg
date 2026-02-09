@@ -1,0 +1,280 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 900" width="1000" height="900">
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <linearGradient id="serverGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a4a7a;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#2a2a4e;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#16a34a;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#15803d;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#dc2626;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#b91c1c;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ea580c;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#c2410c;stop-opacity:1"/>
+    </linearGradient>
+    <marker id="arrowWhite" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#9ca3af"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#60a5fa"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4ade80"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1000" height="900" fill="none" rx="8"/>
+
+  <!-- Title -->
+  <text x="500" y="32" text-anchor="middle" fill="#e2e8f0" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="bold">HLS (HTTP Live Streaming) Protocol Overview</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: HLS Server -->
+  <!-- ============================================================ -->
+  <rect x="345" y="48" width="190" height="46" rx="8" fill="url(#serverGrad)" stroke="#7c7caa" stroke-width="1.5"/>
+  <!-- Server icon: a small rectangle with lines -->
+  <rect x="362" y="58" width="22" height="16" rx="3" fill="none" stroke="#c4b5fd" stroke-width="1.2"/>
+  <line x1="366" y1="64" x2="380" y2="64" stroke="#c4b5fd" stroke-width="1"/>
+  <line x1="366" y1="68" x2="376" y2="68" stroke="#c4b5fd" stroke-width="1"/>
+  <circle cx="373" cy="78" r="1.5" fill="#c4b5fd"/>
+  <circle cx="373" cy="78" r="1.5" fill="#c4b5fd"/>
+  <text x="452" y="76" text-anchor="middle" fill="#e2e8f0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="bold">HLS Server</text>
+
+  <!-- Arrow: Server -> Master Playlist -->
+  <line x1="440" y1="94" x2="440" y2="112" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrowWhite)"/>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: M3U8 Master Playlist (grayed out) -->
+  <!-- ============================================================ -->
+  <rect x="330" y="116" width="220" height="38" rx="6" fill="#2a2a3e" stroke="#555570" stroke-width="1" stroke-dasharray="5,3" opacity="0.55"/>
+  <text x="440" y="140" text-anchor="middle" fill="#777790" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-style="italic">M3U8 Master Playlist</text>
+  <!-- Note -->
+  <text x="565" y="132" fill="#6b7280" font-family="Segoe UI, Arial, sans-serif" font-size="10" font-style="italic">(not used in this</text>
+  <text x="565" y="145" fill="#6b7280" font-family="Segoe UI, Arial, sans-serif" font-size="10" font-style="italic">implementation)</text>
+
+  <!-- Arrow: Master -> Media Playlist -->
+  <line x1="440" y1="154" x2="440" y2="170" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrowWhite)"/>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: M3U8 Media Playlist (highlighted, blue) -->
+  <!-- ============================================================ -->
+  <rect x="255" y="174" width="370" height="218" rx="8" fill="#0f1729" stroke="#2563eb" stroke-width="2" filter="url(#glow)"/>
+  <!-- Header bar -->
+  <rect x="255" y="174" width="370" height="28" rx="8" fill="url(#blueGrad)"/>
+  <rect x="255" y="194" width="370" height="8" fill="url(#blueGrad)"/>
+  <text x="440" y="194" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="bold">M3U8 Media Playlist</text>
+
+  <!-- Playlist content (monospaced) -->
+  <text x="270" y="222" fill="#93c5fd" font-family="Consolas, Courier New, monospace" font-size="11">#EXTM3U</text>
+  <text x="270" y="237" fill="#93c5fd" font-family="Consolas, Courier New, monospace" font-size="11">#EXT-X-VERSION:3</text>
+  <text x="270" y="252" fill="#fbbf24" font-family="Consolas, Courier New, monospace" font-size="11" font-weight="bold">#EXT-X-TARGETDURATION:6</text>
+  <text x="270" y="267" fill="#a78bfa" font-family="Consolas, Courier New, monospace" font-size="11" font-weight="bold">#EXT-X-MEDIA-SEQUENCE:1234</text>
+  <text x="270" y="287" fill="#86efac" font-family="Consolas, Courier New, monospace" font-size="11">#EXTINF:5.005,</text>
+  <text x="270" y="302" fill="#e2e8f0" font-family="Consolas, Courier New, monospace" font-size="11">segment1234.ts</text>
+  <text x="270" y="322" fill="#86efac" font-family="Consolas, Courier New, monospace" font-size="11">#EXTINF:5.005,</text>
+  <text x="270" y="337" fill="#e2e8f0" font-family="Consolas, Courier New, monospace" font-size="11">segment1235.ts</text>
+  <text x="270" y="357" fill="#86efac" font-family="Consolas, Courier New, monospace" font-size="11">#EXTINF:5.005,</text>
+  <text x="270" y="372" fill="#e2e8f0" font-family="Consolas, Courier New, monospace" font-size="11">segment1236.ts</text>
+
+  <!-- ============================================================ -->
+  <!-- Annotations (right side of playlist) -->
+  <!-- ============================================================ -->
+  <!-- TARGETDURATION annotation -->
+  <line x1="625" y1="249" x2="650" y2="249" stroke="#fbbf24" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="650" y1="249" x2="660" y2="249" stroke="#fbbf24" stroke-width="1"/>
+  <rect x="662" y="238" width="200" height="22" rx="4" fill="#1a1a2e" stroke="#fbbf24" stroke-width="1"/>
+  <text x="672" y="254" fill="#fbbf24" font-family="Segoe UI, Arial, sans-serif" font-size="10">TARGETDURATION: Max segment length</text>
+
+  <!-- MEDIA-SEQUENCE annotation -->
+  <line x1="625" y1="264" x2="650" y2="264" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="650" y1="264" x2="660" y2="272" stroke="#a78bfa" stroke-width="1"/>
+  <rect x="662" y="264" width="210" height="22" rx="4" fill="#1a1a2e" stroke="#a78bfa" stroke-width="1"/>
+  <text x="672" y="280" fill="#a78bfa" font-family="Segoe UI, Arial, sans-serif" font-size="10">MEDIA-SEQUENCE: Starting seq number</text>
+
+  <!-- EXTINF annotation -->
+  <line x1="420" y1="288" x2="650" y2="288" stroke="#86efac" stroke-width="1" stroke-dasharray="3,2" opacity="0.5"/>
+  <line x1="650" y1="288" x2="660" y2="296" stroke="#86efac" stroke-width="1"/>
+  <rect x="662" y="290" width="220" height="22" rx="4" fill="#1a1a2e" stroke="#86efac" stroke-width="1"/>
+  <text x="672" y="306" fill="#86efac" font-family="Segoe UI, Arial, sans-serif" font-size="10">EXTINF: Individual segment duration (s)</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: Arrows from playlist to TS segments -->
+  <!-- ============================================================ -->
+  <!-- Left arrow -->
+  <line x1="360" y1="392" x2="200" y2="430" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+  <!-- Center arrow -->
+  <line x1="440" y1="392" x2="440" y2="430" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+  <!-- Right arrow -->
+  <line x1="520" y1="392" x2="680" y2="430" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+  <!-- Label on arrows -->
+  <text x="305" y="408" fill="#60a5fa" font-family="Segoe UI, Arial, sans-serif" font-size="10" transform="rotate(-10, 305, 408)">HTTP GET</text>
+  <text x="448" y="418" fill="#60a5fa" font-family="Segoe UI, Arial, sans-serif" font-size="10">HTTP GET</text>
+  <text x="580" y="408" fill="#60a5fa" font-family="Segoe UI, Arial, sans-serif" font-size="10" transform="rotate(10, 580, 408)">HTTP GET</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: Three .ts segment boxes (green) -->
+  <!-- ============================================================ -->
+  <!-- Segment 1234 -->
+  <rect x="110" y="434" width="180" height="40" rx="6" fill="#052e16" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="200" y="449" text-anchor="middle" fill="#4ade80" font-family="Consolas, Courier New, monospace" font-size="12" font-weight="bold">.ts segment</text>
+  <text x="200" y="466" text-anchor="middle" fill="#86efac" font-family="Consolas, Courier New, monospace" font-size="10">segment1234.ts</text>
+
+  <!-- Segment 1235 -->
+  <rect x="350" y="434" width="180" height="40" rx="6" fill="#052e16" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="440" y="449" text-anchor="middle" fill="#4ade80" font-family="Consolas, Courier New, monospace" font-size="12" font-weight="bold">.ts segment</text>
+  <text x="440" y="466" text-anchor="middle" fill="#86efac" font-family="Consolas, Courier New, monospace" font-size="10">segment1235.ts</text>
+
+  <!-- Segment 1236 -->
+  <rect x="590" y="434" width="180" height="40" rx="6" fill="#052e16" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="680" y="449" text-anchor="middle" fill="#4ade80" font-family="Consolas, Courier New, monospace" font-size="12" font-weight="bold">.ts segment</text>
+  <text x="680" y="466" text-anchor="middle" fill="#86efac" font-family="Consolas, Courier New, monospace" font-size="10">segment1236.ts</text>
+
+  <!-- ============================================================ -->
+  <!-- Arrows from segments to MPEG-TS containers -->
+  <!-- ============================================================ -->
+  <line x1="200" y1="474" x2="200" y2="510" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+  <line x1="440" y1="474" x2="440" y2="510" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+  <line x1="680" y1="474" x2="680" y2="510" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: MPEG-TS Container expanded view -->
+  <!-- ============================================================ -->
+  <!-- Container 1 -->
+  <rect x="80" y="514" width="240" height="135" rx="8" fill="#0a1a0a" stroke="#22c55e" stroke-width="1.5"/>
+  <rect x="80" y="514" width="240" height="26" rx="8" fill="url(#greenGrad)"/>
+  <rect x="80" y="532" width="240" height="8" fill="url(#greenGrad)"/>
+  <text x="200" y="533" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="bold">MPEG-TS Container</text>
+  <!-- H.264 box -->
+  <rect x="96" y="550" width="208" height="32" rx="5" fill="#1c0a0a" stroke="#ef4444" stroke-width="1.2"/>
+  <text x="200" y="563" text-anchor="middle" fill="#fca5a5" font-family="Segoe UI, Arial, sans-serif" font-size="10" font-weight="bold">H.264 Video Elementary Stream</text>
+  <text x="200" y="576" text-anchor="middle" fill="#f87171" font-family="Segoe UI, Arial, sans-serif" font-size="9">(PES packets)</text>
+  <!-- AAC box -->
+  <rect x="96" y="590" width="208" height="32" rx="5" fill="#1a0f00" stroke="#f97316" stroke-width="1.2"/>
+  <text x="200" y="603" text-anchor="middle" fill="#fdba74" font-family="Segoe UI, Arial, sans-serif" font-size="10" font-weight="bold">AAC Audio Elementary Stream</text>
+  <text x="200" y="616" text-anchor="middle" fill="#fb923c" font-family="Segoe UI, Arial, sans-serif" font-size="9">(PES packets)</text>
+  <!-- Packet indicators -->
+  <text x="96" y="642" fill="#6b7280" font-family="Segoe UI, Arial, sans-serif" font-size="8">188-byte TS packets | sync byte: 0x47</text>
+
+  <!-- Container 2 -->
+  <rect x="380" y="514" width="240" height="135" rx="8" fill="#0a1a0a" stroke="#22c55e" stroke-width="1.5"/>
+  <rect x="380" y="514" width="240" height="26" rx="8" fill="url(#greenGrad)"/>
+  <rect x="380" y="532" width="240" height="8" fill="url(#greenGrad)"/>
+  <text x="500" y="533" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="bold">MPEG-TS Container</text>
+  <!-- H.264 box -->
+  <rect x="396" y="550" width="208" height="32" rx="5" fill="#1c0a0a" stroke="#ef4444" stroke-width="1.2"/>
+  <text x="500" y="563" text-anchor="middle" fill="#fca5a5" font-family="Segoe UI, Arial, sans-serif" font-size="10" font-weight="bold">H.264 Video Elementary Stream</text>
+  <text x="500" y="576" text-anchor="middle" fill="#f87171" font-family="Segoe UI, Arial, sans-serif" font-size="9">(PES packets)</text>
+  <!-- AAC box -->
+  <rect x="396" y="590" width="208" height="32" rx="5" fill="#1a0f00" stroke="#f97316" stroke-width="1.2"/>
+  <text x="500" y="603" text-anchor="middle" fill="#fdba74" font-family="Segoe UI, Arial, sans-serif" font-size="10" font-weight="bold">AAC Audio Elementary Stream</text>
+  <text x="500" y="616" text-anchor="middle" fill="#fb923c" font-family="Segoe UI, Arial, sans-serif" font-size="9">(PES packets)</text>
+  <!-- Packet indicators -->
+  <text x="396" y="642" fill="#6b7280" font-family="Segoe UI, Arial, sans-serif" font-size="8">188-byte TS packets | sync byte: 0x47</text>
+
+  <!-- Container 3 -->
+  <rect x="680" y="514" width="240" height="135" rx="8" fill="#0a1a0a" stroke="#22c55e" stroke-width="1.5"/>
+  <rect x="680" y="514" width="240" height="26" rx="8" fill="url(#greenGrad)"/>
+  <rect x="680" y="532" width="240" height="8" fill="url(#greenGrad)"/>
+  <text x="800" y="533" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="bold">MPEG-TS Container</text>
+  <!-- H.264 box -->
+  <rect x="696" y="550" width="208" height="32" rx="5" fill="#1c0a0a" stroke="#ef4444" stroke-width="1.2"/>
+  <text x="800" y="563" text-anchor="middle" fill="#fca5a5" font-family="Segoe UI, Arial, sans-serif" font-size="10" font-weight="bold">H.264 Video Elementary Stream</text>
+  <text x="800" y="576" text-anchor="middle" fill="#f87171" font-family="Segoe UI, Arial, sans-serif" font-size="9">(PES packets)</text>
+  <!-- AAC box -->
+  <rect x="696" y="590" width="208" height="32" rx="5" fill="#1a0f00" stroke="#f97316" stroke-width="1.2"/>
+  <text x="800" y="603" text-anchor="middle" fill="#fdba74" font-family="Segoe UI, Arial, sans-serif" font-size="10" font-weight="bold">AAC Audio Elementary Stream</text>
+  <text x="800" y="616" text-anchor="middle" fill="#fb923c" font-family="Segoe UI, Arial, sans-serif" font-size="9">(PES packets)</text>
+  <!-- Packet indicators -->
+  <text x="696" y="642" fill="#6b7280" font-family="Segoe UI, Arial, sans-serif" font-size="8">188-byte TS packets | sync byte: 0x47</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: picoM3U8 Parser (side panel, left bottom) -->
+  <!-- ============================================================ -->
+  <rect x="50" y="690" width="320" height="185" rx="8" fill="#1a1a38" stroke="#6366f1" stroke-width="1.5"/>
+  <!-- Header -->
+  <rect x="50" y="690" width="320" height="28" rx="8" fill="#4338ca"/>
+  <rect x="50" y="710" width="320" height="8" fill="#4338ca"/>
+  <!-- Gear icon -->
+  <circle cx="72" cy="704" r="8" fill="none" stroke="#e0e7ff" stroke-width="1.2"/>
+  <circle cx="72" cy="704" r="3" fill="#e0e7ff"/>
+  <line x1="72" y1="694" x2="72" y2="698" stroke="#e0e7ff" stroke-width="1.2"/>
+  <line x1="72" y1="710" x2="72" y2="714" stroke="#e0e7ff" stroke-width="1.2"/>
+  <line x1="62" y1="704" x2="66" y2="704" stroke="#e0e7ff" stroke-width="1.2"/>
+  <line x1="78" y1="704" x2="82" y2="704" stroke="#e0e7ff" stroke-width="1.2"/>
+  <text x="94" y="709" fill="#e0e7ff" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="bold">picoM3U8 Parser</text>
+
+  <!-- Parsed fields -->
+  <text x="68" y="740" fill="#a5b4fc" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="bold">Key Parsed Fields:</text>
+
+  <text x="76" y="760" fill="#c4b5fd" font-family="Consolas, Courier New, monospace" font-size="11">version</text>
+  <text x="165" y="760" fill="#6b7280" font-family="Consolas, Courier New, monospace" font-size="11">: 3</text>
+
+  <text x="76" y="778" fill="#c4b5fd" font-family="Consolas, Courier New, monospace" font-size="11">targetDuration</text>
+  <text x="195" y="778" fill="#6b7280" font-family="Consolas, Courier New, monospace" font-size="11">: 6</text>
+
+  <text x="76" y="796" fill="#c4b5fd" font-family="Consolas, Courier New, monospace" font-size="11">mediaSequence</text>
+  <text x="190" y="796" fill="#6b7280" font-family="Consolas, Courier New, monospace" font-size="11">: 1234</text>
+
+  <text x="76" y="818" fill="#c4b5fd" font-family="Consolas, Courier New, monospace" font-size="11">segments[]</text>
+  <rect x="82" y="826" width="270" height="40" rx="4" fill="#12122a" stroke="#4338ca" stroke-width="1"/>
+  <text x="92" y="842" fill="#93c5fd" font-family="Consolas, Courier New, monospace" font-size="10">{ uri: "segment1234.ts",</text>
+  <text x="100" y="858" fill="#93c5fd" font-family="Consolas, Courier New, monospace" font-size="10">duration: 5.005, title: "" }</text>
+
+  <!-- ============================================================ -->
+  <!-- Color Legend (bottom right) -->
+  <!-- ============================================================ -->
+  <rect x="530" y="690" width="420" height="185" rx="8" fill="#1a1a38" stroke="#4b5563" stroke-width="1"/>
+  <text x="550" y="715" fill="#e2e8f0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="bold">Data Flow Summary</text>
+
+  <!-- Flow diagram inside legend -->
+  <!-- Step 1 -->
+  <rect x="550" y="728" width="16" height="16" rx="3" fill="#2563eb"/>
+  <text x="574" y="741" fill="#93c5fd" font-family="Segoe UI, Arial, sans-serif" font-size="11">1. Client fetches M3U8 playlist via HTTP</text>
+
+  <!-- Step 2 -->
+  <rect x="550" y="752" width="16" height="16" rx="3" fill="#6366f1"/>
+  <text x="574" y="765" fill="#a5b4fc" font-family="Segoe UI, Arial, sans-serif" font-size="11">2. picoM3U8 parses playlist tags and segment URIs</text>
+
+  <!-- Step 3 -->
+  <rect x="550" y="776" width="16" height="16" rx="3" fill="#16a34a"/>
+  <text x="574" y="789" fill="#86efac" font-family="Segoe UI, Arial, sans-serif" font-size="11">3. Client downloads .ts segments sequentially</text>
+
+  <!-- Step 4 -->
+  <rect x="550" y="800" width="16" height="16" rx="3" fill="#dc2626"/>
+  <text x="574" y="813" fill="#fca5a5" font-family="Segoe UI, Arial, sans-serif" font-size="11">4. Demux MPEG-TS to extract H.264 video stream</text>
+
+  <!-- Step 5 -->
+  <rect x="550" y="824" width="16" height="16" rx="3" fill="#ea580c"/>
+  <text x="574" y="837" fill="#fdba74" font-family="Segoe UI, Arial, sans-serif" font-size="11">5. Demux MPEG-TS to extract AAC audio stream</text>
+
+  <!-- Step 6 -->
+  <rect x="550" y="848" width="16" height="16" rx="3" fill="#4a4a7a"/>
+  <text x="574" y="861" fill="#d1d5db" font-family="Segoe UI, Arial, sans-serif" font-size="11">6. Decode and render video/audio to Vulkan surface</text>
+
+  <!-- ============================================================ -->
+  <!-- Connecting line: picoM3U8 Parser to Media Playlist -->
+  <!-- ============================================================ -->
+  <line x1="130" y1="690" x2="130" y2="660" stroke="#6366f1" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="130" y1="660" x2="30" y2="660" stroke="#6366f1" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="30" y1="660" x2="30" y2="280" stroke="#6366f1" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="30" y1="280" x2="253" y2="280" stroke="#6366f1" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowBlue)"/>
+  <text x="35" y="475" fill="#818cf8" font-family="Segoe UI, Arial, sans-serif" font-size="9" transform="rotate(-90, 35, 475)">parses playlist</text>
+
+</svg>
