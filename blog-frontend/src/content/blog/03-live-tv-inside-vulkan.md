@@ -1566,15 +1566,14 @@ bool avdHLSStreamAppendData(picoStream stream, const uint8_t *data, size_t dataS
 
 ## Part VII: Rendering a nice looking scene
 
-With the functional pipeline complete, the visual presentation transforms decoded video into an immersive experience. Instead of simply displaying video in a flat rectangle, the HLS player scene renders decoded frames onto four retro television sets modeled entirely using Signed Distance Functions (SDFs) in a ray-marched 3D scene.
+Now with the whole pipeline working, I didnt just want to slap video onto a flat rectangle and call it a day. That would be boring right? Instead, the HLS player scene renders decoded frames onto four retro television sets modeled using SDFs in a ray-marched 3D scene. Because if you're going to go overboard, you might as well go all the way.
 
-![Retro TV Scene Layout](../../assets/blog/03-vulkan-video/retro_tv_scene.svg)
 
 ### Ray Marching Fundamentals
 
-The entire scene is rendered using ray marching — a technique where rays are cast from the camera through each pixel, and the scene geometry is evaluated by repeatedly stepping along each ray until a surface is found.
+The entire scene is rendered using ray marching, if you havent seen this before, its a technique where you cast rays from the camera through each pixel, and figure out the scene geometry by repeatedly stepping along each ray until you hit a surface. 
 
-The fragment shader implements a standard sphere-tracing algorithm:
+The fragment shader uses a standard sphere-tracing algorithm:
 
 ```hlsl
 float2 rayMarch(float3 ro, float3 rd) {
@@ -1600,25 +1599,11 @@ float2 rayMarch(float3 ro, float3 rd) {
 }
 ```
 
-The `mapScene` function evaluates the distance from any point in space to the nearest surface, along with the material ID of that surface. By stepping along the ray in increments equal to this distance (which is guaranteed to be safe — no surface can be closer), the algorithm converges on the surface intersection point.
+The `mapScene` function gives you the distance from any point in space to the nearest surface, along with the material ID of that surface. By stepping along the ray in increments equal to this distance (which is always safe no surface can possibly be closer), we converge on the surface intersection point.
 
 ### SDF-Modeled Retro TVs
 
-Each retro TV is a carefully crafted composition of SDF primitives:
-
-**Main Body**: A rounded box (`sdRoundBox`) with dimensions 0.75 x 0.55 x 0.35 and a rounding radius of 0.08.
-
-**Screen**: A flat box (`sdBox`) recessed into the front face, with dimensions 0.55 x 0.40 x 0.02.
-
-**Bezel/Housing**: Another rounded box slightly larger than the screen, with a boolean subtraction to create the screen opening.
-
-**Speaker Grille**: A small rounded box on the left side of the body.
-
-**Control Panel**: A thin rounded box on the right side with three spherical knobs at different vertical positions.
-
-**Legs**: Four capped cylinders supporting the body, spread at the corners.
-
-**Antennas**: Two capsule shapes (rounded cylinders) extending from a cylindrical base on top, angled outward — the classic "rabbit ears."
+Each retro TV is built up from a bunch of SDF primitives put together:
 
 ```hlsl
 float3 sdRetroTV(float3 p, int tvIndex) {
@@ -1658,7 +1643,7 @@ float3 sdRetroTV(float3 p, int tvIndex) {
 }
 ```
 
-The material ID encoding is clever: screen surfaces get material IDs 10-13 (10 + tvIndex), allowing the shader to identify which TV's screen was hit and sample the correct video texture.
+The material ID encoding is a neat trick: screen surfaces get material IDs 10-13 (10 + tvIndex), so the shader knows exactly which TV's screen got hit and can sample the right video texture.
 
 ### Scene Layout
 
