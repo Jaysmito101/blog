@@ -1321,9 +1321,9 @@ bool isFrameInTime(AVD_VulkanVideoDecoder *video,
 
 ---
 
-## Part VI: The HLS Player Scene — Tying It All Together
+## Part VI: The HLS Player Scene 
 
-With all the individual components built, the HLS player scene orchestrates them into a unified system. The scene architecture follows AVD's plugin-based model: it implements `init`, `load`, `update`, `render`, `destroy`, and `inputEvent` callbacks.
+Alright so with all the individual pieces built, the HLS player scene ties them all together into one unified system. The scene follows AVD's plugin-based model: it implements `init`, `load`, `update`, `render`, `destroy`, and `inputEvent` callbacks.
 
 ![System Architecture Overview](../../assets/blog/03-vulkan-video/architecture_overview.svg)
 
