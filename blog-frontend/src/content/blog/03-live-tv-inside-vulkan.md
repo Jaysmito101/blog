@@ -613,7 +613,7 @@ picoAudioDecoderDestroy(decoder);
 The decoder can handle various output formats (16-bit integer, 32-bit float) and works with both file-based and buffer-based inputs. For the HLS player, we use buffer-based input since the AAC data comes from MPEG-TS demuxing rather than from files on disk.
 
 
-### Audio Device Management
+### Audio Management
 
 The audio subsystem in AVD is built on [PortAudio](https://github.com/PortAudio/portaudio), a cross-platform audio I/O library. Initially I tried using OpenAL Soft, but after trying for about a an hour or so, it felt way to limiting for the level of control I wanted in this project. OpenAL is more of a super abstracted library that manages everything for you, at the cost of less flexibility, and having to follow their own opengl like api. PortAudio on the other hand is a much more low level library, it basically just gives you access to the audio devices and lets you manage the buffers and everything yourself, while giving you a simple callback mechanism to feed audio data to the device, which is perfect for our use case since I want to have full control over the audio playback and synchronization with the video.
 
