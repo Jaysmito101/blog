@@ -975,142 +975,303 @@ dpb->decodeOutputDistinctSupported = (capabilities.flags &
     VK_VIDEO_DECODE_CAPABILITY_DPB_AND_OUTPUT_DISTINCT_BIT_KHR) != 0;
 ```
 
+
 ### Decoding a Frame
 
-The actual decode operation is a complex sequence of Vulkan commands:
+Ok so this is the big one. The actual decode operation is the culmination of everything above,. all that profile setup, session creation, parameter conversion, DPB allocation, it all comes together here. Lets walk through `__avdVulkanVideoDecoderDecodeCurrentFrame` step by step because theres a LOT going on.
 
-**Step 1: Prepare the command buffer**
+#### Step 1: Store Reference Info
+
+Before we even touch a command buffer, we save reference metadata for the current DPB slot. This info will be needed by future frames that reference this one:
+
+```c
+chunk->referenceInfo[chunk->currentDPBSlotIndex] = (AVD_H264VideoReferenceInfo){
+    .bottomFieldFlag = frame->bottomFieldFlag,
+    .usedForLongerTermReference = frame->usedForLongerTermReference,
+    .frameNum = frame->frameNum,
+    .picOrderCount = frame->pictureOrderCount,
+    .topFieldOrderCount = frame->topFieldOrderCount,
+    .bottomFieldOrderCount = frame->bottomFieldOrderCount,
+};
+```
+
+This is the data that connects H.264's reference frame numbering to our physical DPB slot layout. When a future P or B frame says "I reference this from from 5 slices ago", we need to know which DPB slot that lives in.
+
+#### Step 2: Command Buffer Setup
+
+Nothing special here, standard Vulkan command buffer reset and begin.
 
 ```c
 vkResetCommandPool(device, videoDecodeCommandPool, 0);
+
+VkCommandBufferBeginInfo beginInfo = {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+    .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+};
 vkBeginCommandBuffer(commandBuffer, &beginInfo);
 ```
 
-**Step 2: Transition DPB images to the correct layout**
+#### Step 3: Initialize and Transition DPB Layouts
 
-The current DPB slot needs to be in `VK_IMAGE_LAYOUT_VIDEO_DECODE_DPB_KHR` for decoding:
+The very first time we decode, all DPB slots are in `VK_IMAGE_LAYOUT_UNDEFINED`. We need to transition them to `VK_IMAGE_LAYOUT_VIDEO_DECODE_DPB_KHR`. This is a one-time thing, after the first decode, we just transition individual slots as needed.
+
+Each DPB slot is one array layer of the same image, so the barriers target specific layers:
 
 ```c
-avdVulkanVideoDecodeDPBTransitionImageLayout(
-    vulkan, &dpb,
-    currentDPBSlotIndex,
-    VK_IMAGE_LAYOUT_VIDEO_DECODE_DPB_KHR,
-    commandBuffer);
+if (!dpb.initialized) {
+    for (uint32_t i = 0; i < numDPBSlots; i++) {
+        VkImageMemoryBarrier barrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_VIDEO_DECODE_DPB_KHR,
+            .image = dpbImage,
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseArrayLayer = i,     // target this specific slot
+                .layerCount = 1,         // just one layer
+                .levelCount = 1,
+            },
+        };
+        vkCmdPipelineBarrier(commandBuffer, ...);
+    }
+    dpb.initialized = true;
+}
 ```
 
-**Step 3: Set up reference slot information**
+If we're in distinct mode, we also transition the decoded output image to `VK_IMAGE_LAYOUT_VIDEO_DECODE_DST_KHR` so the decoder can write to it.
 
-Each reference frame needs a `VkVideoReferenceSlotInfoKHR` structure pointing to its DPB slot, along with H.264-specific reference information (frame number, POC):
+#### Step 4: Fill the H.264 Picture Info
+
+This is the codec-specific metadata for the current frame being decoded. Vulkan needs to know exactly what kind of frame this is:
 
 ```c
+StdVideoDecodeH264PictureInfo pictureInfo = {
+    .pic_parameter_set_id = frame->ppsId,
+    .seq_parameter_set_id = frame->spsId,
+    .frame_num = frame->frameNum,
+    .PicOrderCnt = { frame->pictureOrderCount, frame->pictureOrderCount },
+    .idr_pic_id = frame->idrPicId,
+    .flags = {
+        .is_intra = frame->isIntraFrame,
+        .is_reference = (frame->nalRefIdc > 0),
+        .IdrPicFlag = frame->isIdrFrame,
+        .field_pic_flag = frame->fieldPicFlag,
+        .bottom_field_flag = frame->bottomFieldFlag,
+        .complementary_field_pair = 0,
+    },
+};
+```
+
+Both `PicOrderCnt[0]` and `PicOrderCnt[1]` get the same value (the picture order count we calculated earlier) for progressive frame decoding. For interlaced content youd set them differently for top and bottom fields, our video processing data structure does support them, but for this implementation I just wanted to keep things simple and only handle progressive frames.
+
+#### Step 5: Build the Reference Slot Arrays
+
+This is where things get hairy. You need to set up parallel arrays of structs describing every DPB slot. It's all sized to `numDPBSlots`:
+
+```c
+VkVideoReferenceSlotInfoKHR     referenceSlotInfos[17];
+VkVideoPictureResourceInfoKHR   referenceSlotPictures[17];
+VkVideoDecodeH264DpbSlotInfoKHR dpbSlotsH264[17];
+StdVideoDecodeH264ReferenceInfo referenceInfosH264[17];
+
 for (uint32_t i = 0; i < numDPBSlots; i++) {
+    // The picture resource points to a specific array layer of the DPB image
+    referenceSlotPictures[i] = (VkVideoPictureResourceInfoKHR){
+        .sType = VK_STRUCTURE_TYPE_VIDEO_PICTURE_RESOURCE_INFO_KHR,
+        .codedOffset = { 0, 0 },
+        .codedExtent = { paddedWidth, paddedHeight },
+        .baseArrayLayer = i,                        // which DPB slot
+        .imageViewBinding = dpb.defaultSubresource.imageView,
+    };
+
+    // H.264-specific reference data (chained via pNext)
+    referenceInfosH264[i] = (StdVideoDecodeH264ReferenceInfo){
+        .FrameNum = chunk->referenceInfo[i].frameNum,
+        .PicOrderCnt = {
+            chunk->referenceInfo[i].picOrderCount,
+            chunk->referenceInfo[i].picOrderCount,
+        },
+    };
+
+    dpbSlotsH264[i] = (VkVideoDecodeH264DpbSlotInfoKHR){
+        .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_DPB_SLOT_INFO_KHR,
+        .pStdReferenceInfo = &referenceInfosH264[i],
+    };
+
+    // Tie it all together
     referenceSlotInfos[i] = (VkVideoReferenceSlotInfoKHR){
         .sType = VK_STRUCTURE_TYPE_VIDEO_REFERENCE_SLOT_INFO_KHR,
         .pPictureResource = &referenceSlotPictures[i],
         .slotIndex = i,
-        .pNext = &dpbSlotsH264[i],
-    };
-
-    referenceInfosH264[i] = (StdVideoDecodeH264ReferenceInfo){
-        .FrameNum = chunk->referenceInfo[i].frameNum,
-        .PicOrderCnt[0] = chunk->referenceInfo[i].picOrderCount,
-        .PicOrderCnt[1] = chunk->referenceInfo[i].picOrderCount,
+        .pPictureResource = &referenceSlotPictures[i],
+        .pNext = &dpbSlotsH264[i],   // H.264 data chained on
     };
 }
 ```
 
-**Step 4: Begin video coding scope**
+See the pNext chain pattern again? Each `VkVideoReferenceSlotInfoKHR` has a `VkVideoDecodeH264DpbSlotInfoKHR` hanging off it, which in turn points to a `StdVideoDecodeH264ReferenceInfo`.
+
+Then we build the actual reference list for this decode operation. Only the *active* references go in, plus the current slot (the "setup reference slot" where the decoder writes the new reference frame):
 
 ```c
-VkVideoBeginCodingInfoKHR beginInfo = {
-    .videoSession = session,
-    .videoSessionParameters = sessionParameters,
-    .referenceSlotCount = referencesCount + 1,
-    .pReferenceSlots = referenceSlots,
-};
-vkCmdBeginVideoCodingKHR(commandBuffer, &beginInfo);
+VkVideoReferenceSlotInfoKHR referenceSlots[18];
+uint32_t refCount = 0;
+
+for (uint32_t i = 0; i < chunk->referencesCount; i++) {
+    uint32_t dpbIndex = chunk->references[i]; // references stores the active DPB slot indices for this frame
+    assert(dpbIndex ! = chunk->currentDPBSlotIndex); // the current slot cant be an active reference
+    referenceSlots[refCount++] = referenceSlotInfos[dpbIndex];
+}
+
+// Append the current slot as the "setup reference" with slotIndex = -1
+VkVideoReferenceSlotInfoKHR setupSlot = referenceSlotInfos[chunk->currentDPBSlotIndex];
+setupSlot.slotIndex = -1;  // special value: this is the setup slot
+referenceSlots[refCount] = setupSlot;
 ```
 
-**Step 5: Reset the session (if needed)**
+The `slotIndex = -1` is a Vulkan Video convention that marks this slot as the "setup reference", the slot where the decoder should store the decoded frame for future reference.
 
-After creating or recreating session parameters, the session must be reset:
+#### Step 6: Begin Video Coding Scope
+
+This is analogous to a render pass begin in graphics, it tells the driver "we're about to do video operations now":
+
+```c
+VkVideoBeginCodingInfoKHR beginCodingInfo = {
+    .sType = VK_STRUCTURE_TYPE_VIDEO_BEGIN_CODING_INFO_KHR,
+    .videoSession = session,
+    .videoSessionParameters = sessionParams,
+    .referenceSlotCount = refCount + 1,  // active refs + setup slot
+    .pReferenceSlots = referenceSlots,
+};
+vkCmdBeginVideoCodingKHR(commandBuffer, &beginCodingInfo);
+```
+
+All reference slots (including the setup slot) must be declared upfront in the begin info. The driver uses this to set up its internal state for the decode.
+
+
+At the beginning, before decoding the first frame, we also need to issue a reset command to initialize the decoder's internal state. Missing this is easy and leads to things not working properly.
 
 ```c
 if (video->needsReset) {
-    VkVideoCodingControlInfoKHR resetInfo = {
+    VkVideoCodingControlInfoKHR controlInfo = {
         .sType = VK_STRUCTURE_TYPE_VIDEO_CODING_CONTROL_INFO_KHR,
         .flags = VK_VIDEO_CODING_CONTROL_RESET_BIT_KHR,
     };
-    vkCmdControlVideoCodingKHR(commandBuffer, &resetInfo);
+    vkCmdControlVideoCodingKHR(commandBuffer, &controlInfo);
+    video->needsReset = false;
 }
 ```
 
-**Step 6: Issue the decode command**
+
+#### Step 7: Issue the Decode Command
+
+Finally, the actual decode! This is where everything comes together. The decode info struct is a monster but each field makes sense:
 
 ```c
-VkVideoDecodeInfoKHR decodeInfo = {
-    .srcBuffer = bitstreamBuffer.buffer,
-    .srcBufferOffset = frame->offset,
-    .srcBufferRange = alignedSize,
-    .referenceSlotCount = referencesCount,
-    .pReferenceSlots = referenceSlots,
-    .pSetupReferenceSlot = &currentSlotInfo,
-    .dstPictureResource = dstPictureResource,
-    .pNext = &pictureInfoH264,
+VkVideoDecodeH264PictureInfoKHR pictureInfoH264 = {
+    .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_PICTURE_INFO_KHR,
+    .pStdPictureInfo = &pictureInfo,     // from step 4
+    .sliceCount = 1,
+    .pSliceOffsets = &(uint32_t){ 0 },   // offset into bitstream buffer
 };
+
+VkVideoDecodeInfoKHR decodeInfo = {
+    .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_INFO_KHR,
+    .srcBuffer = bitstreamBuffer.buffer,          // compressed H.264 data, the buffer contains the entire NAL unit data for the slice including the 0 start code
+    .srcBufferOffset = frame->offset,              // where this frame starts
+    .srcBufferRange = ALIGN(frame->size, alignment), // aligned size, the buffer must be aligned or it wont work
+    .dstPictureResource = dstPictureResource,      // where to write the output
+    .pSetupReferenceSlot = &setupSlot,             // DPB slot for this frame
+    .referenceSlotCount = refCount,                // active reference count
+    .pReferenceSlots = referenceSlots,             // the reference frames
+    .pNext = &pictureInfoH264,                     // H.264 specifics chained on
+};
+
 vkCmdDecodeVideoKHR(commandBuffer, &decodeInfo);
 ```
 
-**Step 7: End video coding scope**
+The `srcBufferRange` needs to be aligned to the driver's bitstream buffer alignment requirement (from the capability query). This is why we `ALIGN()` it, the actual data might be smaller but the range descriptor needs to match alignment.
+
+The `dstPictureResource` differs based on coincide vs distinct mode: in coincide mode it points to the current DPB slot's picture resource; in distinct mode it points to the separate decoded output image.
+
+And yes, `pNext` again `VkVideoDecodeH264PictureInfoKHR` is chained onto `VkVideoDecodeInfoKHR`. This is the 4th or 5th level of pNext nesting if you count everything.
+
+#### Step 8: End Video Coding Scope and Copy
 
 ```c
-vkCmdEndVideoCodingKHR(commandBuffer, &endInfo);
+vkCmdEndVideoCodingKHR(commandBuffer, &endCodingInfo);
 ```
 
-**Step 8: Copy decoded frame to output**
+After the decode, the result sits in either the DPB image (coincide) or the decoded output image (distinct). But we cant sample from those in our graphics shaders — we need to copy the decoded frame to a dedicated output image thats set up for shader reading.
 
-The decoded frame is copied from the DPB image to a dedicated output image that can be sampled in graphics shaders. This involves transitioning the DPB image to `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`, the output image to `VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL`, performing a multi-plane image copy (luma and chroma planes are copied separately), and then transitioning the output image to `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`.
-
-The copy handles the two planes separately because they have different resolutions:
+This copy is a two-stage image copy because the NV12 format has two planes at different resolutions:
 
 ```c
-// Luma plane (full resolution)
-VkImageCopy copyRegion = {
+// Transition source to TRANSFER_SRC, destination to TRANSFER_DST
+// ... image memory barriers ...
+
+// Copy luma plane (Plane 0) at full resolution
+VkImageCopy lumaRegion = {
     .extent = { paddedWidth, paddedHeight, 1 },
-    .srcSubresource = { .aspectMask = VK_IMAGE_ASPECT_PLANE_0_BIT, ... },
-    .dstSubresource = { .aspectMask = VK_IMAGE_ASPECT_PLANE_0_BIT, ... },
+    .srcSubresource = {
+        .aspectMask = VK_IMAGE_ASPECT_PLANE_0_BIT,
+        .baseArrayLayer = sourceLayer,  // DPB slot index for coincide
+        .layerCount = 1,
+    },
+    .dstSubresource = {
+        .aspectMask = VK_IMAGE_ASPECT_PLANE_0_BIT,
+        .baseArrayLayer = 0,
+        .layerCount = 1,
+    },
 };
-vkCmdCopyImage(commandBuffer, srcImage, ..., dstImage, ..., 1, &copyRegion);
+vkCmdCopyImage(cmd, srcImage, transferSrcLayout, dstImage, transferDstLayout,
+               1, &lumaRegion);
 
-// Chroma plane (half resolution)
-copyRegion.extent = { paddedWidth / 2, paddedHeight / 2, 1 };
-copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_PLANE_1_BIT;
-copyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_PLANE_1_BIT;
-vkCmdCopyImage(commandBuffer, srcImage, ..., dstImage, ..., 1, &copyRegion);
+// Copy chroma plane (Plane 1) at half resolution
+VkImageCopy chromaRegion = lumaRegion;
+chromaRegion.extent = { paddedWidth / 2, paddedHeight / 2, 1 };
+chromaRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_PLANE_1_BIT;
+chromaRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_PLANE_1_BIT;
+vkCmdCopyImage(cmd, srcImage, transferSrcLayout, dstImage, transferDstLayout,
+               1, &chromaRegion);
+
+// Transition output image to SHADER_READ_ONLY for sampling
+// ... image memory barrier ...
 ```
 
-**Step 9: Submit and wait**
+The chroma plane being half resolution in both dimensions (because 4:2:0) means its copy region is `width/2 × height/2`. If you accidentally copy it at full resolution you'll either get validation errors or read garbage memory.
+
+#### Step 9: Submit and Wait
 
 ```c
 vkEndCommandBuffer(commandBuffer);
+
+VkSubmitInfo submitInfo = {
+    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+    .commandBufferCount = 1,
+    .pCommandBuffers = &commandBuffer,
+};
+
 vkQueueSubmit(videoDecodeQueue, 1, &submitInfo, decodeFence);
 vkWaitForFences(device, 1, &decodeFence, VK_TRUE, UINT64_MAX);
 ```
 
-### Reference Frame Management
+Note that we submit to `videoDecodeQueue`, not the graphics queue. This is the dedicated video decode queue we found during device setup. The fence-based synchronization is synchronous here, we wait for each frame to finish before moving on. A more efficient implementation would use timeline semaphores and decode multiple frames in flight, but for a thats kinda overkill for most videos as typically a video is running at 20-30 FPS and the decode time is usually well under 33ms, so waiting for each frame to finish before starting the next one is usually fine.
 
-After decoding a frame, the decoder needs to update its reference picture list. If the decoded frame is a reference frame (`nal_ref_idc > 0`), it is added to the reference list:
+#### Step 10: Update Reference Tracking
+
+After a successful decode, if this frame is a reference frame (`nalRefIdc > 0`), we add currently used DPB slot to our reference tracking and advance to the next DPB slot:
 
 ```c
 if (frame->nalRefIdc > 0 && video->h264Video->numDPBSlots > 1) {
     chunk->references[chunk->referenceSlotIndex++] = chunk->currentDPBSlotIndex;
     chunk->referencesCount = max(chunk->referencesCount, chunk->referenceSlotIndex);
-    chunk->currentDPBSlotIndex = (chunk->currentDPBSlotIndex + 1) % video->h264Video->numDPBSlots;
-    chunk->referenceSlotIndex = chunk->referenceSlotIndex % (video->h264Video->numDPBSlots - 1);
+    chunk->currentDPBSlotIndex = (chunk->currentDPBSlotIndex + 1) % numDPBSlots;
+    chunk->referenceSlotIndex = chunk->referenceSlotIndex % (numDPBSlots - 1);
 }
 ```
 
-For IDR frames, the reference list is completely reset, as IDR frames by definition do not reference any previous frames.
+For IDR frames, the reference list is completely reset, as IDR frames by definition do not reference any previous frames. The circular indexing ensures we wrap around properly when all DPB slots are used.
 
 ### Decoded Frame Management
 
