@@ -336,28 +336,25 @@ if (picoMpegTSIsStreamIDAudio(pesPacket->head.streamId)) { ... }
 
 ## Part III: Parsing H.264 Bitstreams (picoH264)
 
-If picoMpegTS is the tool that opens the container, picoH264 is the tool that reads the contents. The H.264/AVC video compression standard is arguably the most complex individual component in the entire pipeline.
+Just a note, for a normal person, using something like the fantastic [minih264](https://github.com/lieff/minih264) would be a perfectly fine option, but as I said earlier, I wanted to do it the hard way.
+
+If picoMpegTS is the tool that opens the container, picoH264 is the tool that reads the contents. The H.264/AVC video compression standard is arguably the second most complex individual component in the entire pipeline, after the actual Vulkan Video decoding process itself. The H.264 specification is a behemoth of over 800 pages and reading through even a tiny part as I did was a huge effort. The thing is for most cases we can ignore almost all of the spec as the full spec covers waaaay too many cases, like 3D video, or multi-view video, or even things like error concealment and all that is pretty much not at all relevent for our simple TV Player.
+One of the important things to keep is mind is, once you get the flow of the spec, reading and preparing the data can actually bu quite simple, and everything is very well defined and follows strict patterns.
+
 
 ![H.264 Bitstream Structure](../../assets/blog/03-vulkan-video/h264_structure.svg)
+*NOTE: This diagram is AI-generated as I ran out of patiance trying to make it by hand, but I tried my best to ensure that the information is accurate, is there are any issues please forgive me for that, and feel free to reach out.*
 
 ### Why a Custom H.264 Parser?
 
-It is important to clarify what picoH264 is and is not. As stated in the library's header:
+> *"NOTE: It is important to keep in mind that this is NOT A DECODER. This library is only meant to parse H.264 bitstreams and extract NAL units, slices, headers and other metadata from them. Actual decoding of video frames is outside the scope of the library."*
 
-> *"NOTE: It is important to keep in mind that this is NOT A DECODER. This library is only meant to parse H.264 bitstreams and extract NAL units, slices, headers and other metadata from them. Actual decoding of video frames is outside the scope of this library."*
+The actual decoding, the computationally intensive process of transforming compressed data into pixel values, is handled by the GPU via Vulkan Video. But the GPU needs to be told *what* to decode. This is where picoH264 comes in. It parses the H.264 bitstream to extract all the metadata that the Vulkan Video decoder needs:
 
-The actual decoding — the computationally intensive process of transforming compressed data into pixel values — is handled by the GPU via Vulkan Video. But the GPU needs to be told *what* to decode. This is where picoH264 comes in. It parses the H.264 bitstream to extract all the metadata that the Vulkan Video decoder needs:
-
-- **Sequence Parameter Sets (SPS)**: Define the overall properties of the video — resolution, chroma format, bit depth, reference frame count, profile/level, and timing information.
-- **Picture Parameter Sets (PPS)**: Define properties that can change between pictures — entropy coding mode, transform sizes, deblocking filter settings, and quantization parameters.
-- **Slice Headers**: Define properties of individual slices within a frame — slice type (I/P/B), reference picture lists, weighted prediction parameters, and deblocking filter overrides.
+- **Sequence Parameter Sets (SPS)**: Define the overall properties of the video, resolution, chroma format, bit depth, reference frame count, profile/level, and timing information.
+- **Picture Parameter Sets (PPS)**: Define properties that can change between pictures, entropy coding mode, transform sizes, deblocking filter settings, and quantization parameters.
+- **Slice Headers**: Define properties of individual slices within a frame slice type (I/P/B), reference picture lists, weighted prediction parameters, and deblocking filter overrides.
 - **NAL Unit Headers**: Identify the type and importance of each network abstraction layer unit.
-
-### The H.264 Specification
-
-picoH264 was implemented based on the ITU-T H.264 (V15) (08/2024) specification — all 800+ pages of it. This is one of the most detailed and precise technical specifications in the multimedia domain, and implementing a parser for it is a significant undertaking.
-
-The specification defines the syntax of every element in the bitstream using a tabular format with conditional fields, variable-length codes, and context-dependent parsing rules. A single SPS, for example, contains dozens of fields, many of which are conditionally present based on the values of earlier fields. The PPS contains scaling matrices that are 4x4 or 8x8 arrays of coefficients. Slice headers are even more complex, with reference picture list modification operations and memory management control operations that can dramatically alter the decoder's state.
 
 ### Bitstream Structure
 
@@ -371,18 +368,17 @@ An H.264 bitstream is organized into a hierarchy of units:
 NAL unit types include:
 - Type 1: Coded slice of a non-IDR picture
 - Type 5: Coded slice of an IDR picture (Instantaneous Decoder Refresh — a keyframe)
-- Type 6: SEI (Supplemental Enhancement Information) messages
 - Type 7: Sequence Parameter Set
 - Type 8: Picture Parameter Set
-- Type 9: Access Unit Delimiter
+- There are a bunch of other types which I did implement in the decoder, for for our purposes we can safely ignore them as we wont be needing them for this project.
 
 NAL units are separated by **start codes** — byte sequences `0x00 0x00 0x01` or `0x00 0x00 0x00 0x01`. The parser needs to scan the bitstream for these markers, handle **emulation prevention bytes** (0x03 inserted after two consecutive zero bytes to prevent false start code detection), and extract the NAL unit payload.
 
-**Exp-Golomb Coding**: Many syntax elements in the bitstream are encoded using Exponential-Golomb codes, a variable-length coding scheme. The parser needs a bit-level reader that can extract unsigned (ue(v)) and signed (se(v)) Exp-Golomb coded values, as well as fixed-length bit fields (u(n)) and flags (u(1)).
+**Exp-Golomb Coding**: Its kinda of out of place to mention this, but many syntax elements in the bitstream are encoded using Exponential-Golomb codes, a variable-length coding scheme. The purpose of it is to use a lot less bits for storing numbers that ar very small, if you read thropugh the spec, you will notice that over all lot of values are intentionally structured so that they contain very small integers thus can be very well compressed, you can read more about it [here](https://en.wikipedia.org/wiki/Exponential-Golomb_coding).
 
 ### The Buffer Reader
 
-picoH264 implements a dedicated bit-level buffer reader for parsing the compressed syntax elements:
+picoH264 implements a dedicated bit-level buffer reader for parsing the compressed syntax elements, this is pretty much following the definations given the the spec, it also implements the relevant functions like f(n), u(n), ue(v), se(v) as defined in the spec for reading fixed-length unsigned integers, Exp-Golomb coded unsigned integers, and Exp-Golomb coded signed integers respectively, so that we can easily read the fields while parsing and be spec compliant.
 
 ```c
 typedef struct {
@@ -392,109 +388,46 @@ typedef struct {
 } picoH264BufferReader;
 ```
 
-This reader provides functions for:
-- Reading fixed-length unsigned integers: `picoH264BufferReaderU(reader, numBits)`
-- Reading Exp-Golomb coded unsigned integers: `picoH264BufferReaderUE(reader)`
-- Reading Exp-Golomb coded signed integers: `picoH264BufferReaderSE(reader)`
-- Checking for remaining RBSP data: `picoH264BufferReaderMoreRBSPData(reader)`
+### SPS
 
-The Exp-Golomb decoding algorithm works by first counting the number of leading zero bits, then reading that many additional bits to form the value. For unsigned values:
-
-$$x = 2^{leadingZeroBits} - 1 + \text{read\_bits}(leadingZeroBits)$$
-
-For signed values, the unsigned value is converted using:
-
-$$\text{se} = (-1)^{x+1} \cdot \lceil x/2 \rceil$$
-
-### Parsing the SPS
-
-The Sequence Parameter Set is the single most important structure in the bitstream. It defines:
+The Sequence Parameter Set is one of the most important structure in the bitstream. It defines:
 
 - **Profile and Level**: `profile_idc` and `level_idc` determine the capabilities required to decode the stream. The parser handles profiles from Baseline (66) through High (100) and levels from 1.0 through 6.2.
 
-- **Chroma Format**: `chroma_format_idc` specifies the chroma subsampling scheme. Most broadcast and streaming content uses 4:2:0 (value 1), where the chroma resolution is half the luma resolution in both dimensions. The Vulkan Video decoder currently only supports 4:2:0.
+- **Chroma Format**: `chroma_format_idc` specifies the chroma subsampling scheme. Most broadcast and streaming content uses 4:2:0 (value 1), where the chroma resolution is half the luma resolution in both dimensions. Out Vulkan Video decoder currently only supports 4:2:0.
 
-- **Resolution**: The actual video dimensions are encoded somewhat indirectly:
+- **Resolution**: The actual video dimensions are encoded somewhat indirectly, however we can easily calculate the padded resolution from the following fields:
   ```
   width = (pic_width_in_mbs_minus1 + 1) * 16
   height = (2 - frame_mbs_only_flag) * (pic_height_in_map_units_minus1 + 1) * 16
   ```
   Frame cropping offsets are then applied to get the actual display resolution from the padded/aligned resolution.
 
-- **Reference Frame Count**: `max_num_ref_frames` determines how many reference frames the decoder needs to keep in its DPB (Decoded Picture Buffer).
+- **Reference Frame Count**: `max_num_ref_frames` determines how many reference frames the decoder needs to keep in its DPB (Decoded Picture Buffer), its important to allocate the DPB buffers.
 
-- **Picture Order Count Type**: `pic_order_cnt_type` (0, 1, or 2) determines the algorithm used to compute the display order of frames. This is crucial for B-frame reordering.
+- **Picture Order Count Type**: `pic_order_cnt_type` (0, 1, or 2) determines the algorithm used to compute the display order of frames. This is crucial for frame reordering.
 
 - **VUI Parameters**: The Video Usability Information extension contains timing info (`num_units_in_tick`, `time_scale`), aspect ratio, color space descriptors, and more. These are essential for determining framerate and correct color reproduction.
 
-The SPS parsing in AVD extracts all of this information and converts it to Vulkan's `StdVideoH264SequenceParameterSet` structure for submission to the video decode session:
+The actual SPS also contains several other fields and are used for various purposes, but the ones mentioned above are the most important ones we activeely need to care about.
 
-```c
-vSps->profile_idc = (StdVideoH264ProfileIdc)sps->profileIdc;
-vSps->level_idc = ...; // Mapped through a lookup table
-vSps->chroma_format_idc = STD_VIDEO_H264_CHROMA_FORMAT_IDC_420;
-vSps->seq_parameter_set_id = sps->seqParameterSetId;
-vSps->bit_depth_luma_minus8 = sps->bitDepthLumaMinus8;
-vSps->log2_max_frame_num_minus4 = (uint8_t)sps->log2MaxFrameNumMinus4;
-vSps->pic_order_cnt_type = (StdVideoH264PocType)sps->picOrderCntType;
-vSps->max_num_ref_frames = sps->maxNumRefFrames;
-vSps->pic_width_in_mbs_minus1 = (uint32_t)sps->picWidthInMbsMinus1;
-vSps->pic_height_in_map_units_minus1 = (uint32_t)sps->picHeightInMapUnitsMinus1;
-```
+### PPS
 
-### Parsing the PPS
+Nothing much to say about the Picture Parameter Set, it is pretty much the same as the SPS but for picture level parameters, it contains things like entropy coding mode (CABAC or CAVLC), transform size flags, deblocking filter settings, and quantization parameter adjustments. Its also parsed the same and loaded to the Vulkan decoder in the same way as the SPS.
 
-The Picture Parameter Set is simpler than the SPS but still contains important information:
+### Slice Headers
 
-- **Entropy Coding Mode**: `entropy_coding_mode_flag` selects between CAVLC (0) and CABAC (1). CABAC provides better compression but is more computationally expensive to decode.
+The most important pars of the slice headers would be:
 
-- **Weighted Prediction**: `weighted_pred_flag` and `weighted_bipred_idc` control how reference pictures are weighted during prediction.
-
-- **Deblocking Filter**: `deblocking_filter_control_present_flag` enables per-slice deblocking filter configuration.
-
-- **Scaling Lists**: `pic_scaling_matrix_present_flag` indicates whether custom quantization scaling matrices are defined. The parser handles both 4x4 and 8x8 scaling lists.
-
-- **Transform Mode**: `transform_8x8_mode_flag` enables 8x8 integer transforms in addition to the default 4x4 transforms.
-
-### Parsing Slice Headers
-
-Slice headers are the most complex per-frame structures. A slice header contains:
-
-- **Slice Type**: I (intra), P (predictive), B (bi-predictive), SI, or SP.
+- **Slice Type**: I (intra), P (predictive), B (bidirectionally-predictive), SI, or SP.
 - **Frame Number**: `frame_num` identifies the frame in decoding order.
-- **IDR Picture ID**: For IDR frames, this identifies which IDR this is (useful for error recovery).
 - **Picture Order Count LSB**: For POC type 0, this provides the least significant bits of the picture order count.
 - **Reference Picture List Modifications**: Instructions for reordering the default reference picture lists.
-- **Decoded Reference Picture Marking**: Instructions for managing the DPB — marking frames as "used for reference" or "unused", or assigning long-term reference indices.
-- **Quantization Parameter**: `slice_qp_delta` adjusts the picture-level QP for this slice.
+- **Decoded Reference Picture Marking**: Instructions for managing the DPB, marking frames as "used for reference" or "unused", or assigning long-term reference indices.
 
 ### Picture Order Count (POC) Calculation
 
-One of the trickiest parts of the H.264 parser is computing the Picture Order Count for each frame. The POC determines the display order of frames, which can differ significantly from the decoding order when B-frames are used.
-
-The H.264 specification defines three POC calculation methods, selected by `pic_order_cnt_type` in the SPS:
-
-**POC Type 0**: Uses `pic_order_cnt_lsb` from the slice header combined with a running MSB counter. The algorithm detects wrap-around based on the difference between the current and previous LSB values:
-
-```c
-if ((sliceHeader->picOrderCntLsb < prevPicOrderCntLsb) &&
-    ((prevPicOrderCntLsb - sliceHeader->picOrderCntLsb) >= (maxPicOrderCntLsb / 2))) {
-    picOrderCntMsb = prevPicOrderCntMsb + maxPicOrderCntLsb; // wrapped forward
-} else if ((sliceHeader->picOrderCntLsb > prevPicOrderCntLsb) &&
-           ((sliceHeader->picOrderCntLsb - prevPicOrderCntLsb) > (maxPicOrderCntLsb / 2))) {
-    picOrderCntMsb = prevPicOrderCntMsb - maxPicOrderCntLsb; // wrapped backward
-} else {
-    picOrderCntMsb = prevPicOrderCntMsb; // no wrap
-}
-```
-
-This directly implements equations 8-3 through 8-5 from the specification.
-
-**POC Type 1**: Uses `frame_num` and an offset table defined in the SPS. The algorithm involves computing an absolute frame number, dividing it into cycles, and accumulating offsets. This is the most complex POC type and is rarely seen in practice.
-
-**POC Type 2**: Uses `frame_num` directly. The POC is simply `2 * (frameNumOffset + frame_num)` for reference pictures, and `2 * (frameNumOffset + frame_num) - 1` for non-reference pictures.
-
-All three types also need to handle the MMCO (Memory Management Control Operation) 5, which resets the POC state. This operation is signaled in the decoded reference picture marking syntax.
+One of the trickiest parts of the H.264 parser is computing the Picture Order Count for each frame. The POC determines the display order of frames, which can differ significantly from the decoding order when B-frames are used, a great article and a reference for this for me was [this one](https://www.vcodex.com/h264avc-picture-management) which explains the different POC types and their calculation in great detail.
 
 ### Display Order Calculation
 
@@ -521,37 +454,6 @@ static bool __avdH264VideoChunkCalculateDisplayOrder(AVD_H264VideoChunk *chunk)
 
 This reordering is essential for correct video playback. Without it, B-frames would be displayed in the wrong order, causing visible artifacts.
 
-### Development of picoH264
-
-The development of picoH264 was by far the most extensive of all the pico libraries used in this project. The git history of libpico reveals a methodical, bottom-up development approach:
-
-1. **Initial NAL unit structures**: The earliest commits define the basic `picoH264NALUnitHeader` structure and NAL unit type enumeration with string conversion functions.
-
-2. **NAL unit detection and parsing**: Implementation of `picoH264FindNextNALUnit` for scanning bitstreams and `picoH264ParseNALUnit` for extracting payloads with emulation prevention byte removal.
-
-3. **Buffer reader**: Implementation of the bit-level reader with Exp-Golomb coding support.
-
-4. **SPS parsing**: A multi-commit effort adding support for the base SPS, VUI parameters, HRD parameters, and scaling lists.
-
-5. **PPS parsing**: Added with scaling matrix support.
-
-6. **Slice header parsing**: The most complex parsing step, implemented over several commits as different slice header features were needed.
-
-7. **SPS extensions**: Support for SVC, MVC, and 3D extensions (for completeness, though not used in this project).
-
-8. **SEI message parsing**: Added for supplemental enhancement information.
-
-9. **Bitstream creation/destruction helpers**: Utility functions for creating bitstream readers from buffers and files.
-
-10. **Slice type parsing**: A dedicated function to quickly determine the slice type without fully parsing the header.
-
-11. **Maximum SPS/PPS counts**: Constants `PICO_H264_MAX_SPS_COUNT` and `PICO_H264_MAX_PPS_COUNT` added for array sizing.
-
-Each commit represents a carefully tested increment. The library was continuously tested against real H.264 bitstreams extracted from HLS segments, with bugs fixed as they were discovered. The most challenging edge cases involved:
-
-- **Multi-slice frames**: Some encoders emit multiple slices per frame, each with their own slice header.
-- **Parameter set updates**: Live streams can change SPS/PPS mid-stream, requiring the parser to detect and handle updates without losing state.
-- **Non-IDR I-frames**: Some streams use I-frames that are not flagged as IDR (Instantaneous Decoder Refresh). The parser needed to detect these by examining the slice type, not just the NAL unit type.
 
 ---
 
