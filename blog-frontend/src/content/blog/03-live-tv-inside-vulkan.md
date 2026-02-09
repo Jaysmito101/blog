@@ -1275,14 +1275,16 @@ For IDR frames, the reference list is completely reset, as IDR frames by definit
 
 ### Decoded Frame Management
 
-The decoder maintains a circular buffer of `AVD_VULKAN_VIDEO_MAX_DECODED_FRAMES` (8) decoded frames. Each frame has a status:
+The decoder keeps a circular buffer of `AVD_VULKAN_VIDEO_MAX_DECODED_FRAMES` (8) decoded frames. Each decoded frame is its own `VkImage` — separate from the DPB — created with `VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT` and `VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT`. The mutable format flag is needed because we create separate image views for luma and chroma planes, which means viewing the same image as different formats. The default subresource creation is skipped (`skipDefaultSubresourceCreation = true`) because we handle the YCbCr views ourselves.
 
-- `FREE`: Available for decoding.
-- `PROCESSING`: Currently being decoded (reserved for future async decoding).
-- `READY`: Decoded and waiting to be displayed.
-- `ACQUIRED`: Currently being displayed.
+Each frame has a status that tracks where it is in its lifecycle:
 
-When looking for a frame to decode into, the decoder first searches for a free slot. If none are available, it looks for the oldest outdated frame (one with a display order earlier than the currently acquired frame) that can be recycled:
+- `FREE`: Not in use, totally available.
+- `PROCESSING`: Being decoded right now (reserved for future async decoding).
+- `READY`: Decoded and waiting in the buffer to be picked up for display.
+- `ACQUIRED`: Currently being displayed on screen.
+
+When we need a frame to decode into, we first look for a free slot. If there isnt one, we hunt for the oldest outdated frame (one with a display order earlier than the currently acquired frame) and recycle it:
 
 ```c
 for (size_t i = 0; i < MAX_DECODED_FRAMES; i++) {
@@ -1300,7 +1302,9 @@ for (size_t i = 0; i < MAX_DECODED_FRAMES; i++) {
 }
 ```
 
-When the application needs a frame for display, it calls `avdVulkanVideoDecoderTryAcquireFrame` with the current playback time. The function finds a decoded frame whose timestamp range covers the current time and returns it:
+The images are also lazily (re)created, if the video resolution changes (say the stream switches quality), frames with the wrong dimensions get destroyed and recreated to match. This happens transparently before each decode.
+
+When the app needs a frame for display, it calls `avdVulkanVideoDecoderTryAcquireFrame` with the current playback time. The function finds the decoded frame whose timestamp range covers the requested time:
 
 ```c
 bool isFrameInTime(AVD_VulkanVideoDecoder *video,
@@ -1313,54 +1317,7 @@ bool isFrameInTime(AVD_VulkanVideoDecoder *video,
 }
 ```
 
-### YCbCr Subresource Creation
 
-The decoded frame images use a multi-planar YCbCr format. To sample them in a graphics shader, the implementation creates separate image views for the luma and chroma planes:
-
-```c
-avdVulkanImageYCbCrSubresourceCreate(
-    vulkan,
-    &frame->image,
-    (VkImageSubresourceRange){
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .baseMipLevel = 0,
-        .levelCount = 1,
-        .baseArrayLayer = 0,
-        .layerCount = 1,
-    },
-    true, // raw mode: separate luma and chroma views
-    &frame->ycbcrSubresource);
-```
-
-This creates two separate `VkImageView` and `VkSampler` pairs — one for the luma plane (`PLANE_0`) and one for the chroma plane (`PLANE_1`). These are bound to the bindless descriptor set for shader access.
-
-### Development History of Vulkan Video in AVD
-
-The git history reveals a painstaking, step-by-step construction of the video decode pipeline:
-
-1. **Initial device setup** (*"feat: setup both video encode and decode in vulkan device setup"*): Adding video queue family discovery and command pool creation.
-
-2. **Video session management** (*"feat: add Vulkan video session management functionality"*): Creating and destroying video sessions with proper memory management.
-
-3. **Profile and capability queries** (*"feat: add H.264 video decode and encode profile info functions"*): Querying device capabilities for H.264 decode support.
-
-4. **DPB implementation** (*"feat: initial vulkan video dpb implementation"*): Creating DPB images with the correct format, usage flags, and multi-layer layout.
-
-5. **Bitstream buffer preparation** (*"feat: setup preparation of bitstream buffers for video chunks"*): Aligned buffer management for feeding compressed data to the decoder.
-
-6. **Session parameter management** (*"feat: setup vulkan video session parameters management"*): Converting picoH264's SPS/PPS to Vulkan's `StdVideo` structures.
-
-7. **Basic decoding** (*"feat: basic video decoding"*): The first successful decode of a video frame.
-
-8. **Frame copying** (*"feat: implement frame copying logic in video decoder for improved performance"*): Copying decoded frames from DPB to output images.
-
-9. **Reference frame management** (*"fix: correctly handle reference count fixing I+P frame videos"*, *"fix: reference slot index dual updation (fixing B frames)"*): Extensive debugging of reference picture management for different frame types.
-
-10. **YCbCr support** (*"feat: add YCbCr subresource support and sampler configuration"*): Creating proper image views for multi-planar sampling.
-
-11. **Color conversion** (*"feat: integrate YUV to RGB conversion in fragment shader"*): Implementing color space conversion in HLSL.
-
-The reference frame management was particularly challenging. Multiple commits address different aspects: fixing I+P frame sequencing, fixing B-frame reference list construction, correcting the DPB slot cycling logic, and handling IDR frame resets. Each bug manifested as visual corruption in specific frames, requiring careful analysis of the H.264 bitstream and the decoder's internal state.
 
 ---
 
