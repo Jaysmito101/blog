@@ -758,22 +758,59 @@ The result tells us max resolution, how many DPB slots we get, how many active r
 
 ### Creating the Video Session
 
-The video session is the fundamental decoder object. Creating one involves:
+The video session is the fundamental decoder object, think of it as an instance of a hardware decoder. Creating one is more involved than you wouldd expect, video sessions have their own memory that you need to explicitly allocate and bind. Its kinda like how you bind memory to images and buffers, but for the decoder itself.
+Now typically you would only create a session with sizes of your video, but since we are building an Live TV player, I have see the video resolution randonly changing from chunk to chunk so creating the decoder with a large enough max resolution to handle all possible videos seemed like the most robust solution, and Vulkan Video decoders are actually pretty flexible with max resolution, as long as you dont exceed the hard limits of the hardware, you can create a session with a max resolution of 3840x2160 and still decode 640x360 videos just fine.
 
-1. **Allocating GPU memory**: Unlike most Vulkan objects, video sessions require explicit memory binding. The implementation queries memory requirements and allocates memory for each requirement:
 
 ```c
-vkGetVideoSessionMemoryRequirementsKHR(device, session, &count, requirements);
+VkVideoSessionCreateInfoKHR sessionCreateInfo = {
+    .sType = VK_STRUCTURE_TYPE_VIDEO_SESSION_CREATE_INFO_KHR,
+    .queueFamilyIndex = vulkan->videoDecodeQueueFamilyIndex,
+    .pVideoProfile = &videoProfileInfo,            // our profile info from earlier
+    .pictureFormat = VK_FORMAT_G8_B8R8_2PLANE_420_UNORM, // typically this is also something you parse out of your video(chromaType), but we only support this
+    .referencePictureFormat = VK_FORMAT_G8_B8R8_2PLANE_420_UNORM,
+    .maxCodedExtent = { maxWidth, maxHeight },     // clamped to 3840x2160 for our player
+    .maxDpbSlots = MIN(capabilities.maxDpbSlots, 17), // 16 is the max defined in the spec for H.264, and we just need 1 more for the current frame, so 17 total
+    .maxActiveReferencePictures = MIN(capabilities.maxActiveReferencePictures, 16),
+    .pStdHeaderVersion = &capabilities.stdHeaderVersion,
+    .pNext = &h264DecodeProfileInfo,               // yes, more pNext chaining
+};
 
-for (uint32_t i = 0; i < count; i++) {
+vkCreateVideoSessionKHR(device, &sessionCreateInfo, NULL, &session);
+```
+
+
+```c
+// First call: how many memory requirements?
+uint32_t memReqCount = 0;
+vkGetVideoSessionMemoryRequirementsKHR(device, session, &memReqCount, NULL);
+
+// Second call: get the actual requirements
+VkVideoSessionMemoryRequirementsKHR memReqs[128] = { ... };
+vkGetVideoSessionMemoryRequirementsKHR(device, session, &memReqCount, memReqs);
+
+// Allocate each one
+VkBindVideoSessionMemoryInfoKHR bindInfos[128] = {0};
+for (uint32_t i = 0; i < memReqCount; i++) {
     VkMemoryAllocateInfo allocInfo = {
-        .allocationSize = requirements[i].memoryRequirements.size,
-        .memoryTypeIndex = findMemoryType(requirements[i].memoryRequirements.memoryTypeBits, 0),
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .allocationSize = memReqs[i].memoryRequirements.size,
+        .memoryTypeIndex = findMemoryType(
+            memReqs[i].memoryRequirements.memoryTypeBits, 0),
     };
     vkAllocateMemory(device, &allocInfo, NULL, &memory[i]);
+
+    bindInfos[i] = (VkBindVideoSessionMemoryInfoKHR){
+        .sType = VK_STRUCTURE_TYPE_BIND_VIDEO_SESSION_MEMORY_INFO_KHR,
+        .memoryBindIndex = memReqs[i].memoryBindIndex,
+        .memory = memory[i],
+        .memorySize = memReqs[i].memoryRequirements.size,
+        .memoryOffset = 0,
+    };
 }
 
-vkBindVideoSessionMemoryKHR(device, session, count, bindInfos);
+// Bind all of them at once
+vkBindVideoSessionMemoryKHR(device, session, memReqCount, bindInfos);
 ```
 
 2. **Creating session parameters**: The SPS and PPS parsed by picoH264 are converted to Vulkan's `StdVideoH264SequenceParameterSet` and `StdVideoH264PictureParameterSet` structures and bundled into a `VkVideoSessionParametersKHR` object.
