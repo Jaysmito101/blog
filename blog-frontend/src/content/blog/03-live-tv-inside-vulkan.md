@@ -586,17 +586,17 @@ This `chunkDisplayOrder` value is then used by the Vulkan Video decoder to assig
 
 ## Part IV: picoAudio — Cross-Platform Audio Decoding
 
-Video without audio is a silent movie. The fourth library in the chain, picoAudio, handles decoding audio data from AAC-ADTS format to raw PCM samples for playback.
+Well, video without audio is basically a silent movie right? The fourth library in the chain, picoAudio, handles decoding audio data from AAC-ADTS format to raw PCM samples for playback.
 
 ### Design Philosophy
 
-Unlike the other pico media libraries, picoAudio does not implement codec algorithms from scratch. AAC (Advanced Audio Coding) is a patent-encumbered codec, and implementing a decoder from scratch would be an enormous undertaking with questionable legal status. Instead, picoAudio takes a pragmatic approach: it uses platform-native APIs for the actual decoding work.
+Now unlike the other pico media libraries, picoAudio does NOT implement codec algorithms from scratch (at this point I was way too tired and wanted some results, and audio was kinda out of scope). So picoAudio just uses platform-native APIs for the actual decoding.
 
-On Windows, picoAudio uses **Media Foundation** via the `IMFSourceReader` COM interface. On macOS, it uses **AudioToolbox** via the `ExtAudioFile` API. This approach provides high-quality, hardware-accelerated audio decoding on all supported platforms while keeping the library's API clean and simple.
+On Windows, picoAudio uses **Media Foundation** via the `IMFSourceReader` COM interface. On macOS, it uses **AudioToolbox** via the `ExtAudioFile` API. This gives us high quality, nicely optimized audio decoding on those the platforms, as far as linux is concerned I did consider using something like libfaad2 but I did not have a system at hand to test it out so gave up on the idea for now.
 
 ### The picoAudio API
 
-The library provides a straightforward API for decoding audio:
+The library has a pretty straightforward API for decoding audio:
 
 ```c
 picoAudioDecoder decoder = picoAudioDecoderCreate();
@@ -610,30 +610,8 @@ picoAudioDecoderReadPCM(decoder, buffer, bufferSize, &samplesRead);
 picoAudioDecoderDestroy(decoder);
 ```
 
-The decoder supports various output formats (16-bit integer, 32-bit float) and can handle both file-based and buffer-based inputs. For the HLS player, buffer-based input is used since the AAC data comes from MPEG-TS demuxing rather than from files on disk.
+The decoder can handle various output formats (16-bit integer, 32-bit float) and works with both file-based and buffer-based inputs. For the HLS player, we use buffer-based input since the AAC data comes from MPEG-TS demuxing rather than from files on disk.
 
-### Integration with the Streaming Audio Player
-
-In AVD, the streaming audio player (`avd_audio_streaming_player`) manages a ring buffer of decoded audio chunks. When a new HLS segment is demuxed, the AAC data is fed to the streaming player:
-
-```c
-avdAudioStreamingPlayerAddChunk(&context->audioPlayer, avData.aacBuffer, avData.aacSize);
-```
-
-The streaming player decodes the AAC data using picoAudio and buffers the resulting PCM samples. A PortAudio callback function is registered to feed audio data to the operating system's audio output:
-
-```c
-static int audioCallback(
-    const void *input, void *output,
-    unsigned long frameCount,
-    const PaStreamCallbackTimeInfo *timeInfo,
-    PaStreamCallbackFlags statusFlags,
-    void *userData)
-{
-    // Copy PCM samples from the ring buffer to the output buffer
-    // Handle buffer underruns gracefully
-}
-```
 
 ### Audio Device Management
 
