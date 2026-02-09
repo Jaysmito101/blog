@@ -813,9 +813,127 @@ for (uint32_t i = 0; i < memReqCount; i++) {
 vkBindVideoSessionMemoryKHR(device, session, memReqCount, bindInfos);
 ```
 
-2. **Creating session parameters**: The SPS and PPS parsed by picoH264 are converted to Vulkan's `StdVideoH264SequenceParameterSet` and `StdVideoH264PictureParameterSet` structures and bundled into a `VkVideoSessionParametersKHR` object.
 
-This conversion is remarkably detailed. Every field from picoH264's SPS structure must be mapped to the corresponding field in Vulkan's structure — constraint flags, VUI parameters, HRD parameters, and all. The PPS conversion similarly maps entropy coding mode, transform mode, scaling lists, and deblocking filter parameters.
+### Session Parameters — The SPS/PPS Data
+
+This is where picoH264's parsed data meets Vulkan. The SPS and PPS structures from our parser need to be converted into Vulkan's `StdVideoH264SequenceParameterSet` and `StdVideoH264PictureParameterSet` structures, and then bundled into a `VkVideoSessionParametersKHR` object.
+
+And oh boy, is this conversion boring, yet a simple typo can cost you a few hours of debugging(saying from experience)... 
+
+Lets look at just a taste of the SPS conversion:
+
+```c
+// SPS flags — every single one needs to be mapped
+vSps->flags.constraint_set0_flag    = sps->constraintSet0Flag;
+vSps->flags.constraint_set1_flag    = sps->constraintSet1Flag;
+// ... constraint_set2 through 5 ...
+vSps->flags.direct_8x8_inference_flag  = sps->direct8x8InferenceFlag;
+vSps->flags.frame_mbs_only_flag       = sps->frameMbsOnlyFlag;
+vSps->flags.frame_cropping_flag       = sps->frameCroppingFlag;
+vSps->flags.vui_parameters_present_flag = sps->vuiParametersPresentFlag;
+// ... and like 10 more flags ...
+
+// SPS values
+vSps->profile_idc = (StdVideoH264ProfileIdc)sps->profileIdc;
+vSps->chroma_format_idc = STD_VIDEO_H264_CHROMA_FORMAT_IDC_420;
+vSps->log2_max_frame_num_minus4 = sps->log2MaxFrameNumMinus4;
+vSps->pic_order_cnt_type = (StdVideoH264PocType)sps->picOrderCntType;
+vSps->max_num_ref_frames = sps->maxNumRefFrames;
+vSps->pic_width_in_mbs_minus1 = sps->picWidthInMbsMinus1;
+vSps->pic_height_in_map_units_minus1 = sps->picHeightInMapUnitsMinus1;
+// ... frame crop offsets, bit depths, etc ...
+```
+
+If the SPS has VUI parameters present (which it usually does for broadcast streams), you also need to fill in a `StdVideoH264SequenceParameterSetVui` struct with aspect ratio info, color space metadata, timing info, and if HRD (Hypothetical Reference Decoder) parameters exist, those go into yet another `StdVideoH264HrdParameters` struct.
+
+The PPS conversion is similarly boring... entropy coding mode, weighted prediction flags, deblocking filter control, and the real fun one: scaling lists. If the PPS has `pic_scaling_matrix_present_flag` set, you build a `StdVideoH264ScalingLists` struct with bitmasks built by iterating through each scaling list present flag and bit-shifting, then copy over the 4x4 and 8x8 scaling matrices.
+
+Once you have all these Vulkan-format parameter structs, you bundle them up with, you guessed it right, more pNext chains incoming:
+
+```c
+VkVideoDecodeH264SessionParametersAddInfoKHR addInfo = {
+    .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_SESSION_PARAMETERS_ADD_INFO_KHR,
+    .stdSPSCount = spsCount,
+    .pStdSPSs = vulkanSPSArray,
+    .stdPPSCount = ppsCount,
+    .pStdPPSs = vulkanPPSArray,
+};
+
+VkVideoDecodeH264SessionParametersCreateInfoKHR h264ParamsInfo = {
+    .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_SESSION_PARAMETERS_CREATE_INFO_KHR,
+    .maxStdSPSCount = spsCount,
+    .maxStdPPSCount = ppsCount,
+    .pParametersAddInfo = &addInfo,
+};
+
+VkVideoSessionParametersCreateInfoKHR paramsCreateInfo = {
+    .sType = VK_STRUCTURE_TYPE_VIDEO_SESSION_PARAMETERS_CREATE_INFO_KHR,
+    .videoSession = session,
+    .videoSessionParametersTemplate = VK_NULL_HANDLE,
+    .pNext = &h264ParamsInfo,      // H.264 params chained on
+};
+
+vkCreateVideoSessionParametersKHR(device, &paramsCreateInfo, NULL, &sessionParams);
+```
+
+One important detail: whenever the SPS or PPS changes mid-stream (which may happen in HLS because each segment can technically can have different parameters), you have two options:
+* destroy the current session parameters and create a new one with the updated SPS/PPS (what I do for simplicity's sake)
+* use `vkUpdateVideoSessionParametersKHR` to update the existing session parameters with the new SPS/PPS. This is more efficient but also more complex to manage, since you need to track which SPS/PPS entries are currently loaded in the session parameters and ensure you dont exceed the max counts when adding new ones.
+
+
+### Video Buffers and Images 
+
+Heres something to not miss, any Vulkan buffer or image that participates in video decode operations needs a `VkVideoProfileListInfoKHR` chained onto its create info. Without it, the implementation has no idea this resource is meant for video and things will just silently fail or crash or all sorts of bad things may happen.
+
+For **buffers** (the bitstream buffer that holds compressed H.264 data):
+
+```c
+VkBufferCreateInfo bufferInfo = {
+    .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+    .size = bitstreamSize,
+    .usage = VK_BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR,
+    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+    .pNext = &profileListInfo,  // MUST chain the video profile
+};
+```
+
+Theres also a nasty NVIDIA-specific workaround: video bitstream buffers *must* use `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT` memory, even if youd normally want device-local memory. On NVIDIA hardware, if the bitstream buffer is device-local and not host-mapped, things doesnt seem to work. Thanks to [turanszkij](https://github.com/turanszkij/mini_video/blob/c07d30847cad6850854c39cbc4967ac830075f2f/mini_video_vulkan.cpp#L399) for documenting this quirk, in their [code](https://github.com/turanszkij/mini_video).
+
+
+```c
+if (isVideoDecodeBuffer || isVideoEncodeBuffer) {
+    properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+    bufferInfo.pNext = avdVulkanVideoGetH264ProfileListInfo(isVideoDecodeBuffer);
+}
+```
+
+For **images** (DPB images, decode output images, decoded frame images), same deal:
+
+```c
+VkImageCreateInfo imageInfo = {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+    .format = VK_FORMAT_G8_B8R8_2PLANE_420_UNORM,
+    .usage = VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR | ...,
+    .pNext = &profileListInfo,  // again, video profile required
+    // ... rest of the image info
+};
+```
+
+And when you create an `VkImageView` for a video image, you need to chain a `VkImageViewUsageCreateInfo` that explicitly specifies the usage flags:
+
+```c
+VkImageViewUsageCreateInfo imageViewUsageInfo = {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
+    .usage = imageUsageFlags,  // match the image's usage flags
+};
+
+VkImageViewCreateInfo viewInfo = {
+    // ... normal view setup ...
+    .pNext = &imageViewUsageInfo,  // required for video image views
+};
+```
+
+Without this, the validation layers will yell at you. Regular graphics images dont need this but video images absolutely do. Its one of those things thats easy to miss and the error messages arent always super helpful about what went wrong.
 
 ### The Decoded Picture Buffer (DPB)
 
