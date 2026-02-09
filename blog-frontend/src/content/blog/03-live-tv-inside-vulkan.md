@@ -285,11 +285,11 @@ size_t pesPacketCount = 0;
 picoMpegTSPESPacket *pesPackets = picoMpegTSGetPESPackets(mpegts, &pesPacketCount);
 ```
 
-The boolean parameter to `picoMpegTSCreate` controls whether the parser makes internal copies of the data. When set to `false`, it operates in zero-copy mode for better performance, assuming the caller keeps the buffer alive for the lifetime of the parser.
+The boolean parameter to `picoMpegTSCreate` controls whether the parser keeps its own copies of the data, which you might use for debugging. When you set it to `false`, it just frees these packets once parsed.
 
 ### Demuxing in Detail
 
-The demuxing process works as follows:
+So how does the demuxing process actually work? Lets walk through it:
 
 **Step 1: Synchronization**. The parser scans the input buffer for sync bytes (0x47) at 188-byte intervals. If sync is lost, it scans forward to find the next valid packet boundary.
 
@@ -304,14 +304,14 @@ The demuxing process works as follows:
 
 ### Stream Type Identification
 
-One of the crucial functions provided by picoMpegTS is stream type identification. The PMT lists each elementary stream with a **stream type** code defined in the H.222.0 specification. The library maps these to meaningful constants:
+Now one of the really crucial things picoMpegTS does is stream type identification. The PMT lists each elementary stream with a **stream type** code defined in the H.222.0 specification. The library maps these to meaningful constants:
 
 ```c
 #define PICO_MPEGTS_STREAM_TYPE_H264     0x1B
 #define PICO_MPEGTS_STREAM_TYPE_AAC_ADTS 0x0F
 ```
 
-The demux worker uses these to route PES packet payloads to the appropriate processing pipelines:
+The demux worker uses these to route PES packet payloads to the right processing pipelines:
 
 ```c
 for (size_t i = 0; i < pesPacketCount; i++) {
@@ -325,7 +325,7 @@ for (size_t i = 0; i < pesPacketCount; i++) {
 }
 ```
 
-The demuxer also provides helper functions to check if a PES stream ID indicates video or audio content, allowing for additional validation:
+The demuxer also has some helper functions to check if a PES stream ID indicates video or audio content, for a bit of extra validation, as the video and audio might not always be H264 or AAC_ADTS, so we can use these functions to warn us if we are getting stream types we dont support but still valid video or audio packets.
 
 ```c
 if (picoMpegTSIsStreamIDVideo(pesPacket->head.streamId)) { ... }
@@ -349,7 +349,7 @@ One of the important things to keep is mind is, once you get the flow of the spe
 
 > *"NOTE: It is important to keep in mind that this is NOT A DECODER. This library is only meant to parse H.264 bitstreams and extract NAL units, slices, headers and other metadata from them. Actual decoding of video frames is outside the scope of the library."*
 
-The actual decoding, the computationally intensive process of transforming compressed data into pixel values, is handled by the GPU via Vulkan Video. But the GPU needs to be told *what* to decode. This is where picoH264 comes in. It parses the H.264 bitstream to extract all the metadata that the Vulkan Video decoder needs:
+The actual decoding, the heavy number crunching that transforms compressed data into actual pixel values, thats handled by the GPU via Vulkan Video. But the GPU needs to be told *what* to decode right? This is where picoH264 comes in. It parses the H.264 bitstream to extract all the metadata that the Vulkan Video decoder needs:
 
 - **Sequence Parameter Sets (SPS)**: Define the overall properties of the video, resolution, chroma format, bit depth, reference frame count, profile/level, and timing information.
 - **Picture Parameter Sets (PPS)**: Define properties that can change between pictures, entropy coding mode, transform sizes, deblocking filter settings, and quantization parameters.
