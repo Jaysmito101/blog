@@ -615,27 +615,8 @@ The decoder can handle various output formats (16-bit integer, 32-bit float) and
 
 ### Audio Device Management
 
-The audio subsystem in AVD is built on [PortAudio](https://github.com/PortAudio/portaudio), a cross-platform audio I/O library. The development of the audio system is visible in the git history:
+The audio subsystem in AVD is built on [PortAudio](https://github.com/PortAudio/portaudio), a cross-platform audio I/O library. Initially I tried using OpenAL Soft, but after trying for about a an hour or so, it felt way to limiting for the level of control I wanted in this project. OpenAL is more of a super abstracted library that manages everything for you, at the cost of less flexibility, and having to follow their own opengl like api. PortAudio on the other hand is a much more low level library, it basically just gives you access to the audio devices and lets you manage the buffers and everything yourself, while giving you a simple callback mechanism to feed audio data to the device, which is perfect for our use case since I want to have full control over the audio playback and synchronization with the video.
 
-1. **Initial attempt with OpenAL**: The first audio implementation used OpenAL Soft. Several commits show the integration of OpenAL, buffer management, and source linking.
-
-2. **Switch to PortAudio**: A pivotal commit replaced OpenAL with PortAudio: *"feat: replace OpenAL with PortAudio for audio handling and remove unused audio code"*. This was motivated by PortAudio's simpler streaming model, which better matched the needs of live audio playback.
-
-3. **Streaming player**: The streaming audio player was implemented to handle the continuous, segment-based audio delivery model of HLS: *"feat: implement audio streaming player with buffer management and chunk handling"*.
-
-4. **Volume control**: Distance-based volume attenuation was added later to create a spatial audio effect in the 3D scene.
-
-### Volume and Spatial Audio
-
-The HLS player creates a simple spatial audio effect by attenuating volume based on the camera's distance from each TV:
-
-```c
-float distanceFromCamera = avdVec3Length(
-    avdVec3Subtract(sourcePositions[i], scene->cameraPosition));
-source->player.audioPlayer.volume = 10.0f / (distanceFromCamera * distanceFromCamera);
-```
-
-This inverse-square attenuation law matches the physical behavior of sound intensity, creating an intuitive experience where TVs closer to the camera are louder than those farther away.
 
 ---
 
