@@ -1786,7 +1786,7 @@ float3 yCbCrToRgbBt601(float3 ycbcr)
 
 ### Sampling in the Shader
 
-The fragment shader samples the luma and chroma planes separately using the texture index system encoded in the push constants:
+The fragment shader samples luma and chroma separately, using the texture index system we pack into the push constants:
 
 ```hlsl
 int texIndex = (data.textureIndices >> (tvIndex * 8)) & 0xFF;
@@ -1799,7 +1799,7 @@ if (texIndex < 5) {
 }
 ```
 
-The `textureIndices` push constant encodes four 8-bit indices packed into a 32-bit integer:
+The `textureIndices` push constant is just four 8-bit indices packed into a single 32-bit integer:
 
 ```c
 int32_t textureIndices = 0;
@@ -1812,7 +1812,7 @@ for (size_t i = 0; i < 4; i++) {
 }
 ```
 
-When no video is available (texture index >= 5), the shader displays animated static noise:
+And when there's no video available (texture index >= 5), we just show some animated static noise. Classic TV stuff:
 
 ```hlsl
 float noise = frac(sin(dot(screenUV * 100.0, float2(12.9898, 78.233))) * 43758.5453);
@@ -1821,9 +1821,9 @@ screenColor = float3(noise * 0.05);
 
 ### Screen Effects
 
-The shader applies several effects to make the video look like it is being displayed on a real CRT screen:
+Now here's the fun part we layer on a bunch of effects to make it actually look like a real CRT screen:
 
-**Vignette**: Darkens the edges of the screen to simulate CRT light falloff:
+**Vignette**: Darkens the edges to fake that CRT light falloff:
 
 ```hlsl
 float2 centered = screenUV * 2.0 - 1.0;
@@ -1831,14 +1831,14 @@ float vignette = 1.0 - dot(centered, centered) * 0.15;
 screenColor *= vignette;
 ```
 
-**Fresnel Reflection**: Adds a subtle reflected highlight at grazing angles, simulating the glass screen:
+**Fresnel Reflection**: Gives a subtle highlight at grazing angles you know, like light bouncing off glass:
 
 ```hlsl
 float fresnel = pow(saturate(1.0 - dot(normal, -rd)), 4.0);
 screenColor += float3(0.15) * fresnel;
 ```
 
-**Glow**: The screen material emits light slightly beyond the displayed content:
+**Glow**: Makes the screen emit a bit of light beyond just the video content:
 
 ```hlsl
 float3 emission = screenColor * 1.2;
