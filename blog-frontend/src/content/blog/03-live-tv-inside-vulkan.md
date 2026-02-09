@@ -356,6 +356,35 @@ The actual decoding, the heavy number crunching that transforms compressed data 
 - **Slice Headers**: Define properties of individual slices within a frame slice type (I/P/B), reference picture lists, weighted prediction parameters, and deblocking filter overrides.
 - **NAL Unit Headers**: Identify the type and importance of each network abstraction layer unit.
 
+### Library Design
+
+So picoH264 follows the same stb-style single header design as the other pico libraries, but the interesting part is how it handles state and memory, or rather, how it *doesn't*.
+
+The library is completely stateless. It doesnt keep track of any SPS or PPS internally, it doesnt maintain any kind of decoder context, and it allocates basically nothing on its own. Instead its designed as a pure toolkit, you give it a buffer, tell it what you want parsed, and it fills in a struct you own. 
+
+What this means in practice is that *the user* manage the SPS and PPS arrays. When you parse an SPS, you get back a struct and its your job to store it somewhere indexed by its `seq_parameter_set_id`. Same with PPS. And when you want to parse a PPS, you need to hand the library the corresponding SPS yourself because PPS parsing depends on SPS data. Slice header parsing? You need to provide *both* the SPS and PPS. The library wont go looking for them, it doesnt even know they exist.
+
+```c
+// you own these, the library doesn't care where they live
+picoH264SequenceParameterSet_t mySpsArray[32] = {0};
+picoH264PictureParameterSet_t myPpsArray[256] = {0};
+
+// parse an SPS — library fills your struct, you store it
+picoH264ParseSequenceParameterSet(payload, payloadSize, &mySpsArray[spsId]);
+
+// parse a PPS — you must provide the matching SPS
+picoH264ParsePictureParameterSet(payload, payloadSize, &mySpsArray[spsId], &myPpsArray[ppsId]);
+
+// parse a slice — you provide both SPS and PPS
+picoH264ParseSliceLayerWithoutPartitioning(payload, payloadSize, &nalHeader, sps, pps, &sliceLayer);
+```
+
+I really like this design for a few reasons. First, it means the library has zero hidden state, so theres no weird global context to worry about in multithreaded code. Second, you get to decide how much memory to allocate, if you know your stream only uses 2 SPS entries, you allocate 2, not 32. And third, since every function just takes inputs and fills outputs, testing and debugging is straightforward.
+
+The one thing the library *does* allocate is the bitstream reader object, which wraps either a file or a memory buffer with a clean callback-based I/O interface. But even there you can provide your own read/seek/tell functions if you want custom I/O behavior, and this is 100% optional.
+
+Also worth mentioning, the library explicitly does NOT parse slice data (the actual compressed macroblocks). It just gives you the raw bytes. This is intentional because when youre feeding data to Vulkan Video or DirectX Video, they want the raw compressed data as-is, the GPU handles the actual entropy decoding and reconstruction. So picoH264 parses just enough to tell the GPU what it needs to know, and hands off the heavy lifting. And the actual decoding is outside the scope of this library.
+
 ### Bitstream Structure
 
 An H.264 bitstream is organized into a hierarchy of units:
