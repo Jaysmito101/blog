@@ -2111,18 +2111,18 @@ This way we don't have to pass long URL strings through the thread channels. Jus
 
 ### Channel-Based Communication
 
-All inter-thread communication uses picoThreads' channel system — a typed, thread-safe FIFO queue with blocking receive and non-blocking try-receive operations.
+All the inter-thread communication uses picoThreads' channel system basically a un-typed, thread-safe FIFO queue with blocking receive and non-blocking try-receive. Heavily "inspired" by Rusts's flume crate.
 
-The channels use unbounded queues, meaning producers never block. Consumers block with a timeout (200ms), which serves as both a receive wait and a periodic opportunity to check the `running` flag for graceful shutdown.
+The channels use unbounded queues so producers never block. Consumers block with a 200ms timeout, which doubles as both a receive wait and a chance to check the `running` flag for clean shutdown.
 
-Item destructors are registered on channels that carry owning data:
+Item destructors get registered on channels that carry owning data:
 
 ```c
 picoThreadChannelSetItemDestructor(pool->mediaDemuxChannel, __avdHLSWorkerPoolFreeDemuxPayload, NULL);
 picoThreadChannelSetItemDestructor(pool->mediaReadyChannel, __avdHLSWorkerPoolFreeReadyPayload, NULL);
 ```
 
-This ensures that if items are abandoned in the channel during shutdown, their memory is properly freed.
+So if items get abandoned in the channel during shutdown, their memory still gets properly freed. No leaks.
 
 ### Sources Hash: Handling Source Changes
 
