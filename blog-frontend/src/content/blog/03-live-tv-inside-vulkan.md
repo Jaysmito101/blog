@@ -1743,18 +1743,28 @@ This is the format stored in the Vulkan image (`VK_FORMAT_G8_B8R8_2PLANE_420_UNO
 The conversion from YCbCr to RGB depends on which color space standard was used. Different standards use different conversion matrices. The most common ones you'll run into with video are:
 
 **BT.601** (SD video, used by most HLS streams):
+
 $$R = Y + 1.402 \cdot (Cr - 0.5)$$
+
 $$G = Y - 0.344136 \cdot (Cb - 0.5) - 0.714136 \cdot (Cr - 0.5)$$
+
 $$B = Y + 1.772 \cdot (Cb - 0.5)$$
 
+
 **BT.709** (HD video):
+
 $$R = Y + 1.5748 \cdot (Cr - 0.5)$$
+
 $$G = Y - 0.1873 \cdot (Cb - 0.5) - 0.4681 \cdot (Cr - 0.5)$$
+
 $$B = Y + 1.8556 \cdot (Cb - 0.5)$$
 
 **BT.2020** (UHD/HDR video):
+
 $$R = Y + 1.4746 \cdot (Cr - 0.5)$$
+
 $$G = Y - 0.1646 \cdot (Cb - 0.5) - 0.5714 \cdot (Cr - 0.5)$$
+
 $$B = Y + 1.8814 \cdot (Cb - 0.5)$$
 
 The `ColorConverters.hlsl` shared shader library implements all three, plus full-range variants:
