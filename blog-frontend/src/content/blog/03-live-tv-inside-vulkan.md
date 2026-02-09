@@ -1875,22 +1875,22 @@ color = lerp(color, fogCol, fogIdx);
 
 ## Part IX: Audio-Video Synchronization
 
-One of the hardest problems in any media player is keeping audio and video in sync. Even small discrepancies — more than 40-80 milliseconds — are perceptible to humans and create a jarring viewing experience.
+Alright, so here's probably the hardest thing in any media player, keeping audio and video in sync. Even a tiny mismatch, like 40-80 milliseconds, and people notice. It feels wrong and jarring.
 
 ### The Synchronization Strategy
 
-The HLS player uses a time-based synchronization strategy. Both audio and video are indexed by absolute timestamps relative to the application's clock:
+The approach here is time-based. Both audio and video get indexed by absolute timestamps relative to the app's clock:
 
 - **Video**: Each decoded frame has a `timestampSeconds` field computed from the segment's start time plus the frame's display order multiplied by the frame duration:
   ```c
   frame->timestampSeconds = chunk->timestampSeconds + frame->chunkDisplayOrder * video->frameDurationSeconds;
   ```
 
-- **Audio**: The streaming audio player operates on a segment-by-segment basis. When a new segment is started, the audio for that segment is queued, and the player's buffer naturally advances at the audio sample rate.
+- **Audio**: The streaming audio player works segment-by-segment. When a new segment starts, we queue up its audio and the player's buffer just advances naturally at the sample rate.
 
 ### Segment Switching
 
-When the current segment's duration has elapsed (measured by wall-clock time since the segment started playing), the context switches to the next segment:
+When the current segment's time runs out (tracked by wall-clock time since it started), we switch to the next one:
 
 ```c
 if (time - context->currentSegmentStartTime > context->currentSegment.duration) {
@@ -1902,14 +1902,14 @@ if (time - context->currentSegmentStartTime > context->currentSegment.duration) 
 ```
 
 During the switch:
-1. The next segment is acquired from the segment store.
-2. The audio player's buffer is cleared and refilled with the new segment's audio.
-3. The video data is appended to the running HLS stream.
-4. The video decoder's timestamp offset is updated.
+1. We grab the next segment from the segment store.
+2. Clear the audio buffer and fill it with the new segment's audio.
+3. Append the video data to the running HLS stream.
+4. Update the video decoder's timestamp offset.
 
 ### Framerate Detection
 
-The video framerate is determined in two ways:
+Figuring out the video framerate happens in two ways:
 
 1. **From VUI timing info in the SPS**: If the SPS contains valid VUI parameters with timing info, the framerate is calculated directly:
    ```c
@@ -1922,7 +1922,9 @@ The video framerate is determined in two ways:
        avdH264VideoCountFrames(segment.h264Buffer, segment.h264Size) / segment.duration;
    ```
 
-This is a practical compromise. Many real-world HLS streams, especially those from different encoders, may not include VUI timing information. The estimated framerate is usually accurate enough for smooth playback.
+This is a practical compromise honestly. A lot of real-world HLS streams, especially from different encoders, don't include VUI timing info at all. The estimated framerate is usually close enough for smooth playback.
+
+There are other more sensible ways of doing this like, calculating based of the timestamps in the PES packets, or some otehr fields but this is easy and good enough.
 
 ### Handling Buffer Starvation
 
