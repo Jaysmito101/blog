@@ -2188,14 +2188,14 @@ The development of this project was informed by numerous resources. Here is a co
 
 - [libpico](https://github.com/Jaysmito101/libpico) — The collection of single-header C libraries created for this project.
 - [PortAudio](https://github.com/PortAudio/portaudio) — Cross-platform audio I/O.
-- [GLFW](https://github.com/glfw/glfw) — Windowing and input.
-- [Volk](https://github.com/zeux/volk) — Vulkan function loader.
 
 ### SDF and Ray Marching
 
 - [Inigo Quilez — Distance Functions](https://iquilezles.org/articles/distfunctions/)
 - [Inigo Quilez — Soft Shadows](https://iquilezles.org/articles/rmshadows/)
 - [ACES Filmic Tonemapping](https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/)
+
+A more detailed list of refereces can be found [here](https://github.com/Jaysmito101/AdvancedVulkanDemos/blob/main/resources/video.md)
 
 ---
 
