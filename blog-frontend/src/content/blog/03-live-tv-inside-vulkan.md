@@ -427,32 +427,159 @@ The most important pars of the slice headers would be:
 
 ### Picture Order Count (POC) Calculation
 
-One of the trickiest parts of the H.264 parser is computing the Picture Order Count for each frame. The POC determines the display order of frames, which can differ significantly from the decoding order when B-frames are used, a great article and a reference for this for me was [this one](https://www.vcodex.com/h264avc-picture-management) which explains the different POC types and their calculation in great detail.
+One of the trickiest parts of the H.264 parser is computing the Picture Order Count for each frame. The POC determines the display order of frames, which can differ significantly from the decoding order when B-frames are used. A great article and reference for this was [this one by VCodex](https://www.vcodex.com/h264avc-picture-management), which explains the different POC types and their calculation in great detail, another great read would be the official [Vulkan-Video-Samples code](https://github.com/KhronosGroup/Vulkan-Video-Samples/blob/9968a9377a8498033da2c7284f1b74457da1eb5b/vk_video_decoder/libs/NvVideoParser/src/VulkanH264Parser.cpp#L3174) from which my implementation is based off of.
+
+The H.264 specification defines three distinct methods for computing the Picture Order Count, selected by the `pic_order_cnt_type` field in the SPS. The implementation dispatches to the appropriate algorithm based on this value:
+
+```c
+switch (sps->picOrderCntType) {
+    case 0:
+        __avdH264VideoCalculatePictureOrderCountType0(video, sps, sliceHeader, outFrameInfo);
+        break;
+    case 1:
+        __avdH264VideoCalculatePictureOrderCountType1(video, sps, sliceHeader, outFrameInfo);
+        break;
+    case 2:
+        __avdH264VideoCalculatePictureOrderCountType2(video, sps, sliceHeader, outFrameInfo);
+        break;
+}
+```
+
+#### POC Type 0: LSB/MSB Wraparound
+
+POC Type 0 is by far the most common in practice. It uses a least-significant-bits counter (`pic_order_cnt_lsb`) transmitted in each slice header, combined with a most-significant-bits accumulator (`PicOrderCntMsb`) that the decoder maintains across frames. The `MaxPicOrderCntLsb` is derived from the SPS as $2^{(\text{log2\_max\_pic\_order\_cnt\_lsb\_minus4} + 4)}$, which defines the wraparound point for the LSB counter.
+
+The core logic (equations 8-3 through 8-5 in the spec) detects when the LSB counter has wrapped around, and adjusts the MSB accordingly:
+
+```c
+uint32_t maxPicOrderCntLsb = 1 << (sps->log2MaxPicOrderCntLsbMinus4 + 4);
+
+uint32_t picOrderCntMsb = 0;
+if ((sliceHeader->picOrderCntLsb < prevPicOrderCntLsb)
+    && ((prevPicOrderCntLsb - sliceHeader->picOrderCntLsb) >= (maxPicOrderCntLsb / 2))) {
+    picOrderCntMsb = prevPicOrderCntMsb + maxPicOrderCntLsb;  // wrapped forward
+} else if ((sliceHeader->picOrderCntLsb > prevPicOrderCntLsb)
+    && ((sliceHeader->picOrderCntLsb - prevPicOrderCntLsb) > (maxPicOrderCntLsb / 2))) {
+    picOrderCntMsb = prevPicOrderCntMsb - maxPicOrderCntLsb;  // wrapped backward
+} else {
+    picOrderCntMsb = prevPicOrderCntMsb;                       // no wrap
+}
+```
+
+For frame pictures (non-field mode), the top field order count is computed as $\text{PicOrderCntMsb} + \text{pic\_order\_cnt\_lsb}$, and the bottom field order count adds the `delta_pic_order_cnt_bottom` offset from the slice header. On IDR frames, both the MSB and LSB state are reset to zero, establishing a fresh reference point.
+
+A subtle but critical detail is the handling of MMCO operation 5 (Memory Management Control Operation 5), which resets the DPB and POC state mid-stream. When MMCO 5 is present, the POC state must be reset as if an IDR frame had occurred, but without actually being one. The implementation explicitly checks for this:
+
+```c
+static bool __avdH264VideoIsMMCO5Present(picoH264SliceHeader sliceHeader, picoH264NALRefIDC nalRefIdc)
+{
+    if (nalRefIdc == PICO_H264_NAL_REF_IDC_DISPOSABLE) return false;
+
+    picoH264DecRefPicMarking marking = &sliceHeader->decRefPicMarking;
+    if (marking->adaptiveRefPicMarkingModeFlag) {
+        for (size_t i = 0; i < marking->numMMCOOperations; ++i) {
+            if (marking->mmcoOperations[i].memoryManagementControlOperation == 5) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+```
+
+#### POC Type 1: Cycle-Based Calculation
+
+POC Type 1 uses a more complex cycle-based algorithm. Instead of directly transmitting POC values, it derives them from the frame number and a set of offsets defined in the SPS (`offset_for_ref_frame` array). The algorithm first computes an `absFrameNum` from the frame number offset, then derives the `expectedPicOrderCnt` by accumulating offsets through complete cycles (equations 8-6 through 8-11):
+
+```c
+uint32_t absFrameNum = 0;
+if (sps->numRefFramesInPicOrderCntCycle > 0)
+    absFrameNum = frameNumOffset + sliceHeader->frameNum;
+
+if (outFrameInfo->nalRefIdc == 0 && absFrameNum > 0)
+    absFrameNum -= 1;
+
+uint32_t expectedPicOrderCnt = 0;
+if (absFrameNum > 0) {
+    uint32_t picOrderCntCycleCnt        = (absFrameNum - 1) / sps->numRefFramesInPicOrderCntCycle;
+    uint32_t frameNumInPicOrderCntCycle = (absFrameNum - 1) % sps->numRefFramesInPicOrderCntCycle;
+
+    uint32_t expectedDeltaPerPicOrderCntCycle = 0;
+    for (uint32_t i = 0; i < sps->numRefFramesInPicOrderCntCycle; i++)
+        expectedDeltaPerPicOrderCntCycle += sps->offsetForRefFrame[i];
+
+    expectedPicOrderCnt = picOrderCntCycleCnt * expectedDeltaPerPicOrderCntCycle;
+    for (uint32_t i = 0; i <= frameNumInPicOrderCntCycle; i++)
+        expectedPicOrderCnt += sps->offsetForRefFrame[i];
+}
+```
+
+The final field order counts are then adjusted by `deltaPicOrderCnt` values from each slice header. This type is more bandwidth-efficient for streams with regular GOP structures, since the SPS offsets encode the expected pattern and the slice headers only carry small deltas.
+
+#### POC Type 2: Frame Number Derived
+
+POC Type 2 is the simplest: the picture order count is derived directly from the frame number. For reference pictures, the POC equals $2 \times (\text{FrameNumOffset} + \text{frame\_num})$; for non-reference pictures, it is $2 \times (\text{FrameNumOffset} + \text{frame\_num}) - 1$. This type does not support B-frames (since it cannot reorder frames), but its algorithmic simplicity makes it useful for low-latency streaming scenarios:
+
+```c
+int32_t tempPicOrderCnt = 0;
+if (outFrameInfo->isIdrFrame) {
+    tempPicOrderCnt = 0;
+} else if (outFrameInfo->nalRefIdc == 0) {
+    tempPicOrderCnt = 2 * (frameNumOffset + sliceHeader->frameNum) - 1;
+} else {
+    tempPicOrderCnt = 2 * (frameNumOffset + sliceHeader->frameNum);
+}
+```
+
+#### Final POC Derivation
+
+After computing the top and bottom field order counts through whichever type-specific algorithm applies, the final `pictureOrderCount` for the frame is derived. For frame pictures with both fields, the minimum of the top and bottom field counts is used. For field pictures, the corresponding field's count is taken directly:
+
+```c
+if (sliceHeader->fieldPicFlag || outFrameInfo->complementaryFieldPair) {
+    outFrameInfo->pictureOrderCount = MIN(
+        outFrameInfo->topFieldOrderCount,
+        outFrameInfo->bottomFieldOrderCount);
+} else if (!sliceHeader->bottomFieldFlag) {
+    outFrameInfo->pictureOrderCount = outFrameInfo->topFieldOrderCount;
+} else {
+    outFrameInfo->pictureOrderCount = outFrameInfo->bottomFieldOrderCount;
+}
+```
 
 ### Display Order Calculation
 
-After computing POC values for all frames in a chunk, the display order is determined by sorting frames by their POC:
+Once each frame in a chunk has its POC computed, the actual display order(order in which we render the frames) is determined by sorting frames according to their POC values. The decoding order (the order NAL units appear in the bitstream) can differ significantly from the display order, this is the entire reason B-frames exist. An I-frame might be decoded first, followed by a P-frame, then several B-frames that reference both and should be displayed *between* them.
+
+Out little player creates an array of (index, POC) pairs, sorts them by POC value, and then assigns each frame a `chunkDisplayOrder` based on its sorted position:
 
 ```c
 static bool __avdH264VideoChunkCalculateDisplayOrder(AVD_H264VideoChunk *chunk)
 {
-    // Create index-POC pairs
-    for (size_t i = 0; i < frameCount; i++) {
-        pairs[i].poc = frameInfo->pictureOrderCount;
+    size_t frameCount = chunk->frameInfos.count;
+
+    __AVD_POCIndexPair *pairs = malloc(sizeof(__AVD_POCIndexPair) * frameCount);
+
+    for (size_t i = 0; i < frameCount; ++i) {
+        AVD_H264VideoFrameInfo *frameInfo = avdListGet(&chunk->frameInfos, i);
+        pairs[i].poc   = frameInfo->pictureOrderCount;
         pairs[i].index = i;
     }
 
-    // Sort by POC
-    qsort(pairs, frameCount, sizeof(pair), pocCompare);
+    qsort(pairs, frameCount, sizeof(__AVD_POCIndexPair), pocIndexPairCompare);
 
-    // Assign display order based on sorted position
-    for (size_t displayOrder = 0; displayOrder < frameCount; displayOrder++) {
+    for (size_t displayOrder = 0; displayOrder < frameCount; ++displayOrder) {
+        size_t originalIndex = pairs[displayOrder].index;
+        AVD_H264VideoFrameInfo *frameInfo = avdListGet(&chunk->frameInfos, originalIndex);
         frameInfo->chunkDisplayOrder = (uint32_t)displayOrder;
     }
+
+    free(pairs);
+    return true;
 }
 ```
 
-This reordering is essential for correct video playback. Without it, B-frames would be displayed in the wrong order, causing visible artifacts.
+This `chunkDisplayOrder` value is then used by the Vulkan Video decoder to assign timestamps to decoded frames (`frame->timestampSeconds = chunk->timestampSeconds + frame->chunkDisplayOrder * video->frameDurationSeconds`), ensuring that each frame is presented at the correct time regardless of its position in the bitstream. Without this reordering step, B-frames would appear out of sequence and produce visible temporal artifacts during playback.
 
 
 ---
