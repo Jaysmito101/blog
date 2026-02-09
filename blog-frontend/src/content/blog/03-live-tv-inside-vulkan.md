@@ -39,22 +39,22 @@ Additionally, a fourth library was created:
 
 4. **picoAudio**: A cross platform audio decoding library using OS-native APIs (Media Foundation on Windows, AudioToolbox on macOS)
 
-Each of these libraries represents weeks of work reading specifications, writing parsers, debugging edge cases, and testing against real world media streams(which I swear are very rare find public ones due to copyright issues). Together, they form a complete media pipeline capable of taking a URL pointing to an HLS stream and producing raw decoded video frames and PCM audio samples without a single line of code from any existing media framework.
+Each of these libraries took me weeks of work reading specifications, writing parsers, debugging edge cases, and testing against real world media streams(which I swear are very rare find public ones due to copyright issues). Together they form a complete media pipeline that can take a URL pointing to an HLS stream and spit out raw decoded video frames and PCM audio samples without a single line of code from any existing media framework.
 
-Let us now dive into each piece of this puzzle, starting with the protocol that makes it all possible.
+Alright lets dive into each piece of this puzzle, starting with the protocol that makes it all possible.
 
 ---
 
 ## Understanding HLS
 
-Before we look at any code, it is essential to understand what HLS actually is and how it works. HTTP Live Streaming, initially developed by Apple and published as an RFC (RFC 8216), is an adaptive bitrate streaming protocol that delivers media content over standard HTTP connections.
+Before we look at any code, we need to understand what HLS actually is and how it works right? HTTP Live Streaming was initially developed by Apple and published as an RFC (RFC 8216), its basically an adaptive bitrate streaming protocol that delivers media content over standard HTTP connections.
 
 ![HLS Protocol Overview](../../assets/blog/03-vulkan-video/hls_protocol.svg)
 *NOTE: This diagram is AI-generated as I ran out of patiance trying to make it by hand, but I tried my best to ensure that the information is accurate, is there are any issues please forgive me for that, and feel free to reach out.*
 
 ### The HLS Architecture
 
-At its core, HLS is simple in concept:
+At its core, HLS is pretty simple in concept:
 
 1. A media encoder takes a live video/audio feed and encodes it into one or more quality levels (bitrates). Also it could be coming from multiple cameras or audio sources, lets say two different cameras for the same event.
 2. A stream segmenter divides the encoded media into small files called media segments, typically 2-10 seconds long(can be variable and can change during streaming, atleast from what I have seen).
@@ -62,7 +62,7 @@ At its core, HLS is simple in concept:
 4. A web server hosts both the playlist and the media segments.
 5. A client fetches the playlist, determines which segments to download, downloads them, and plays them back.
 
-For live streams, the playlist is continuously updated by the server with new segments as they become available. The client periodically re-fetches the playlist to discover new content.
+Now for live streams, the playlist is continuously updated by the server with new segments as they become available. The client just keeps re-fetching the playlist to discover new content.
 
 One really interesting part here is it is named "HTTP Live Streaming" but it is really just for Live content, you can stream any content even pre-recorded ones with this protocol.
 
@@ -103,27 +103,27 @@ The `#EXT-X-MEDIA-SEQUENCE` tag tells the client the sequence number of the firs
 
 In HLS, media segments are typically packaged as MPEG Transport Stream (.ts) files, though fragmented MP4 (fMP4) is also supported in newer versions but for simplicity's sake lets pretend we dont know about that. Each .ts file contains multiplexed audio and video elementary streams wrapped in PES (Packetized Elementary Stream) packets, which are themselves carried in 188-byte transport stream packets.
 
-This is where the complexity begins. To get from a .ts file to raw video frames and audio samples, you need to:
+And this is where the complexity really starts kicking in. To get from a .ts file to raw video frames and audio samples, you need to:
 
 1. Parse the MPEG-TS container to extract individual PES packets.
-2. Identify which PES packets contain video (H.264) and which contain audio (typically AAC ADTS).
+2. Figure out which PES packets contain video (H.264) and which contain audio (typically AAC ADTS).
 3. Reassemble the video elementary stream from the PES packet payloads.
 4. Parse the H.264 bitstream to extract individual frames (NAL units).
 5. Decode the NAL units using a video decoder (in our case, the Vulkan Video hardware decoder).
 6. Decode the audio elementary stream (AAC) into PCM samples for playback.
 7. And at every point of time ensure that we are keeping everything in sync, that is the audio and video are played back at the correct times according to their timestamps.
 
-Each of these steps is a significant engineering challenge in its own right. Let us tackle them one at a time.
+Yeah. Each of these is a pretty serious engineering challenge on its own. Lets tackle them one at a time.
 
 ---
 
 ## Part I: Parsing HLS Playlists (picoM3U8)
 
-M3U8 files are extended M3U (multimedia playlist) files encoded in UTF-8. Despite their apparent simplicity, that they are just text files with tags, a correct parser must handle a surprising number of edge cases and tag types.
+So M3U8 files are basically extended M3U (multimedia playlist) files encoded in UTF-8. Now you might think they are just text files with tags and thats kind of true, but a correct parser has to handle a surprising number of edge cases and tag types.
 
 ### The M3U8 Specification
 
-The parser was implemented based on [RFC 8216](https://datatracker.ietf.org/doc/html/rfc8216), which defines the HLS protocol. The RFC specifies numerous tags, each with specific syntax rules and semantics. The most important ones for our purposes are:
+I implemented the parser based on [RFC 8216](https://datatracker.ietf.org/doc/html/rfc8216), which defines the HLS protocol. The RFC has a ton of tags, each with specific syntax rules and semantics. The most important ones for our purposes are:
 
 - `#EXTM3U`: Must be the first line; identifies the file as an Extended M3U file.
 - `#EXT-X-VERSION`: Specifies the compatibility version of the playlist.
@@ -252,7 +252,7 @@ An MPEG-TS stream contains several layers of structure:
 
 I implemented picoMpegTS based on the `ITU-T H.222.0 v9 (08/2023)` specification, with additional references to the [tsduck](https://tsduck.io/docs/mpegts-introduction.pdf) introduction document and [FFmpeg's MPEG-TS implementation](https://github.com/FFmpeg/FFmpeg/blob/master/libavformat/mpegts.c).
 
-Not every part of the specification needed to be implemented, for our purposes, we needed:
+Not every part of the specification needed implementing though. For our purposes, we needed:
 
 1. Transport packet parsing and synchronization.
 2. PAT parsing to find the PMT PID.
