@@ -649,6 +649,8 @@ Before we go further, let me quickly explain the main building blocks you work w
 
 Before any video decoding can happen, you gotta set up the Vulkan device with video queue support. AVD's device initialization code queries for video decode capabilities:
 
+Before you proceed any further, keep in mind, that whenever you are adding Video support to your application, ALWAYS ALWAYS make sure to design it in a way that its easily disabled(via macros, runtime flags whatever) as most debuggers like RenderDoc and Nsight dont support video extensions, and if have vulkan video extensions enabled, you wont be able to use these debuggers at all.
+
 ```c
 VkVideoDecodeH264ProfileInfoKHR h264DecodeProfileInfo = {
     .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_PROFILE_INFO_KHR,
