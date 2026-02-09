@@ -1,0 +1,413 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 900" width="1100" height="900">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap');
+      text { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; }
+      .mono { font-family: 'JetBrains Mono', 'Consolas', monospace; }
+      .title { font-size: 14px; font-weight: 700; fill: #e0e0e0; }
+      .subtitle { font-size: 11px; font-weight: 600; fill: #b0b0b0; }
+      .label { font-size: 10px; font-weight: 600; fill: #ffffff; }
+      .label-sm { font-size: 9px; font-weight: 400; fill: #d0d0d0; }
+      .label-xs { font-size: 8px; font-weight: 400; fill: #a0a0a0; }
+      .field-text { font-size: 9.5px; font-weight: 400; fill: #e0e0e0; }
+      .hex { font-size: 8.5px; font-weight: 500; fill: #ffd700; }
+      .level-label { font-size: 11px; font-weight: 700; fill: #8888aa; letter-spacing: 1px; }
+      .arrow-label { font-size: 9px; fill: #777799; }
+      .parser-title { font-size: 13px; font-weight: 700; fill: #e0e0e0; }
+      .parser-text { font-size: 9.5px; fill: #c0c0c0; }
+      .parser-warn { font-size: 10px; font-weight: 700; fill: #ff6b6b; }
+      .parser-ok { font-size: 9.5px; fill: #6bcb77; }
+    </style>
+
+    <!-- Glow filter for start codes -->
+    <filter id="glow-gold" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feFlood flood-color="#ffd700" flood-opacity="0.3"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Subtle shadow -->
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="1" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+
+    <!-- Arrow marker -->
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#555577"/>
+    </marker>
+    <marker id="arrowhead-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4a9eff"/>
+    </marker>
+    <marker id="arrowhead-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ff4757"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1100" height="900" rx="0" ry="0" fill="none"/>
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.03">
+    <line x1="0" y1="0" x2="0" y2="900" stroke="#ffffff" stroke-width="1" transform="translate(50,0)"/>
+    <line x1="0" y1="0" x2="0" y2="900" stroke="#ffffff" stroke-width="1" transform="translate(150,0)"/>
+    <line x1="0" y1="0" x2="0" y2="900" stroke="#ffffff" stroke-width="1" transform="translate(250,0)"/>
+    <line x1="0" y1="0" x2="0" y2="900" stroke="#ffffff" stroke-width="1" transform="translate(350,0)"/>
+    <line x1="0" y1="0" x2="0" y2="900" stroke="#ffffff" stroke-width="1" transform="translate(450,0)"/>
+    <line x1="0" y1="0" x2="0" y2="900" stroke="#ffffff" stroke-width="1" transform="translate(550,0)"/>
+    <line x1="0" y1="0" x2="0" y2="900" stroke="#ffffff" stroke-width="1" transform="translate(650,0)"/>
+    <line x1="0" y1="0" x2="0" y2="900" stroke="#ffffff" stroke-width="1" transform="translate(750,0)"/>
+    <line x1="0" y1="0" x2="1100" y2="0" stroke="#ffffff" stroke-width="1" transform="translate(0,100)"/>
+    <line x1="0" y1="0" x2="1100" y2="0" stroke="#ffffff" stroke-width="1" transform="translate(0,200)"/>
+    <line x1="0" y1="0" x2="1100" y2="0" stroke="#ffffff" stroke-width="1" transform="translate(0,300)"/>
+    <line x1="0" y1="0" x2="1100" y2="0" stroke="#ffffff" stroke-width="1" transform="translate(0,400)"/>
+    <line x1="0" y1="0" x2="1100" y2="0" stroke="#ffffff" stroke-width="1" transform="translate(0,500)"/>
+    <line x1="0" y1="0" x2="1100" y2="0" stroke="#ffffff" stroke-width="1" transform="translate(0,600)"/>
+    <line x1="0" y1="0" x2="1100" y2="0" stroke="#ffffff" stroke-width="1" transform="translate(0,700)"/>
+    <line x1="0" y1="0" x2="1100" y2="0" stroke="#ffffff" stroke-width="1" transform="translate(0,800)"/>
+  </g>
+
+  <!-- ===== DIAGRAM TITLE ===== -->
+  <text x="40" y="35" font-size="18" font-weight="700" fill="#e0e0e0" font-family="Inter, Segoe UI, sans-serif">H.264 / AVC Bitstream Structure</text>
+  <text x="40" y="52" font-size="11" fill="#666688" font-family="Inter, Segoe UI, sans-serif">ITU-T H.264 | ISO/IEC 14496-10 -- Annex B byte stream format</text>
+
+  <!-- ===== LEVEL 1: H.264 BYTE STREAM ===== -->
+  <text x="40" y="82" class="level-label">LEVEL 1</text>
+  <text x="105" y="82" class="title">H.264 Byte Stream (Annex B)</text>
+
+  <!-- Main byte stream bar -->
+  <rect x="40" y="90" width="720" height="40" rx="4" ry="4" fill="#16213e" stroke="#2a2a4a" stroke-width="1.5" filter="url(#shadow)"/>
+
+  <!-- Start code markers -->
+  <g filter="url(#glow-gold)">
+    <rect x="42" y="93" width="60" height="16" rx="3" ry="3" fill="#3d2e00" stroke="#ffd700" stroke-width="1"/>
+    <text x="72" y="104" text-anchor="middle" class="hex mono">00 00 00 01</text>
+  </g>
+  <rect x="104" y="93" width="72" height="16" rx="3" ry="3" fill="#1a3a6e" opacity="0.6"/>
+  <text x="140" y="104" text-anchor="middle" class="label-xs">NAL data</text>
+
+  <g filter="url(#glow-gold)">
+    <rect x="178" y="93" width="60" height="16" rx="3" ry="3" fill="#3d2e00" stroke="#ffd700" stroke-width="1"/>
+    <text x="208" y="104" text-anchor="middle" class="hex mono">00 00 00 01</text>
+  </g>
+  <rect x="240" y="93" width="56" height="16" rx="3" ry="3" fill="#1a4a2e" opacity="0.6"/>
+  <text x="268" y="104" text-anchor="middle" class="label-xs">NAL data</text>
+
+  <g filter="url(#glow-gold)">
+    <rect x="298" y="93" width="60" height="16" rx="3" ry="3" fill="#3d2e00" stroke="#ffd700" stroke-width="1"/>
+    <text x="328" y="104" text-anchor="middle" class="hex mono">00 00 00 01</text>
+  </g>
+  <rect x="360" y="93" width="44" height="16" rx="3" ry="3" fill="#4a1a2e" opacity="0.6"/>
+  <text x="382" y="104" text-anchor="middle" class="label-xs">NAL data</text>
+
+  <g filter="url(#glow-gold)">
+    <rect x="406" y="93" width="60" height="16" rx="3" ry="3" fill="#3d2e00" stroke="#ffd700" stroke-width="1"/>
+    <text x="436" y="104" text-anchor="middle" class="hex mono">00 00 00 01</text>
+  </g>
+  <rect x="468" y="93" width="95" height="16" rx="3" ry="3" fill="#4a3a1a" opacity="0.6"/>
+  <text x="515" y="104" text-anchor="middle" class="label-xs">NAL data</text>
+
+  <g filter="url(#glow-gold)">
+    <rect x="565" y="93" width="60" height="16" rx="3" ry="3" fill="#3d2e00" stroke="#ffd700" stroke-width="1"/>
+    <text x="595" y="104" text-anchor="middle" class="hex mono">00 00 00 01</text>
+  </g>
+  <rect x="627" y="93" width="55" height="16" rx="3" ry="3" fill="#2a2a3e" opacity="0.6"/>
+  <text x="654" y="104" text-anchor="middle" class="label-xs">NAL data</text>
+
+  <!-- Dots to show continuation -->
+  <text x="700" y="105" fill="#555577" font-size="16" font-weight="700">...</text>
+
+  <!-- Byte bar bottom labels -->
+  <text x="72" y="124" text-anchor="middle" class="label-xs" fill="#ffd700">start code</text>
+  <text x="208" y="124" text-anchor="middle" class="label-xs" fill="#ffd700">start code</text>
+  <text x="328" y="124" text-anchor="middle" class="label-xs" fill="#ffd700">start code</text>
+  <text x="436" y="124" text-anchor="middle" class="label-xs" fill="#ffd700">start code</text>
+  <text x="595" y="124" text-anchor="middle" class="label-xs" fill="#ffd700">start code</text>
+
+  <!-- ===== Arrows from Level 1 to Level 2 ===== -->
+  <line x1="400" y1="130" x2="400" y2="148" stroke="#555577" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+  <!-- ===== LEVEL 2: NAL UNITS ===== -->
+  <text x="40" y="162" class="level-label">LEVEL 2</text>
+  <text x="105" y="162" class="title">NAL Units (Network Abstraction Layer)</text>
+
+  <!-- NAL Unit container -->
+  <rect x="40" y="170" width="720" height="90" rx="6" ry="6" fill="none" stroke="#2a2a4a" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- AUD NAL -->
+  <g filter="url(#shadow)">
+    <rect x="55" y="182" width="80" height="44" rx="6" ry="6" fill="#2a2a3e" stroke="#888899" stroke-width="1.5"/>
+    <text x="95" y="201" text-anchor="middle" class="label" fill="#ccccdd">AUD</text>
+    <text x="95" y="215" text-anchor="middle" class="label-xs" fill="#888899">type 9</text>
+  </g>
+
+  <!-- SEI NAL -->
+  <g filter="url(#shadow)">
+    <rect x="148" y="182" width="80" height="44" rx="6" ry="6" fill="#2a2a3e" stroke="#888899" stroke-width="1.5"/>
+    <text x="188" y="201" text-anchor="middle" class="label" fill="#ccccdd">SEI</text>
+    <text x="188" y="215" text-anchor="middle" class="label-xs" fill="#888899">type 6</text>
+  </g>
+
+  <!-- SPS NAL - Blue -->
+  <g filter="url(#shadow)">
+    <rect x="241" y="182" width="96" height="44" rx="6" ry="6" fill="#0f2a4d" stroke="#4a9eff" stroke-width="2"/>
+    <text x="289" y="201" text-anchor="middle" class="label" fill="#7bbfff">SPS</text>
+    <text x="289" y="215" text-anchor="middle" class="label-xs" fill="#4a9eff">type 7</text>
+  </g>
+
+  <!-- PPS NAL - Green -->
+  <g filter="url(#shadow)">
+    <rect x="350" y="182" width="88" height="44" rx="6" ry="6" fill="#0f3a1f" stroke="#4adf7f" stroke-width="2"/>
+    <text x="394" y="201" text-anchor="middle" class="label" fill="#7befa0">PPS</text>
+    <text x="394" y="215" text-anchor="middle" class="label-xs" fill="#4adf7f">type 8</text>
+  </g>
+
+  <!-- IDR Slice NAL - Red -->
+  <g filter="url(#shadow)">
+    <rect x="451" y="182" width="112" height="44" rx="6" ry="6" fill="#3a0f1f" stroke="#ff4757" stroke-width="2"/>
+    <text x="507" y="201" text-anchor="middle" class="label" fill="#ff7b87">IDR Slice</text>
+    <text x="507" y="215" text-anchor="middle" class="label-xs" fill="#ff4757">type 5</text>
+  </g>
+
+  <!-- Non-IDR Slice NAL - Orange -->
+  <g filter="url(#shadow)">
+    <rect x="576" y="182" width="112" height="44" rx="6" ry="6" fill="#3a2a0f" stroke="#ff9f43" stroke-width="2"/>
+    <text x="632" y="201" text-anchor="middle" class="label" fill="#ffbf73">Non-IDR Slice</text>
+    <text x="632" y="215" text-anchor="middle" class="label-xs" fill="#ff9f43">type 1</text>
+  </g>
+
+  <!-- NAL header detail -->
+  <rect x="55" y="237" width="633" height="18" rx="3" ry="3" fill="#16213e" stroke="#2a2a4a" stroke-width="1"/>
+  <text x="65" y="250" class="mono label-xs" fill="#888899">NAL header: [ forbidden_zero_bit(1) | nal_ref_idc(2) | nal_unit_type(5) ] = 1 byte</text>
+
+  <!-- ===== Arrows from Level 2 to Level 3 ===== -->
+  <!-- SPS arrow -->
+  <line x1="289" y1="260" x2="200" y2="295" stroke="#4a9eff" stroke-width="1.5" marker-end="url(#arrowhead-blue)" stroke-dasharray="4,2"/>
+  <text x="230" y="280" class="arrow-label" fill="#4a9eff">expand</text>
+
+  <!-- Slice arrow -->
+  <line x1="550" y1="260" x2="570" y2="295" stroke="#ff4757" stroke-width="1.5" marker-end="url(#arrowhead-red)" stroke-dasharray="4,2"/>
+  <text x="575" y="280" class="arrow-label" fill="#ff4757">expand</text>
+
+  <!-- ===== LEVEL 3: SPS CONTENTS ===== -->
+  <text x="40" y="310" class="level-label">LEVEL 3</text>
+  <text x="105" y="310" class="title">Sequence Parameter Set (SPS) Contents</text>
+
+  <!-- SPS expanded box -->
+  <rect x="40" y="318" width="440" height="195" rx="8" ry="8" fill="#0a1a33" stroke="#4a9eff" stroke-width="1.5" filter="url(#shadow)"/>
+
+  <!-- SPS header bar -->
+  <rect x="40" y="318" width="440" height="28" rx="8" ry="8" fill="#112a4d"/>
+  <rect x="40" y="338" width="440" height="8" fill="#112a4d"/>
+  <text x="60" y="337" class="label" fill="#7bbfff">SPS - Sequence Parameter Set (nal_unit_type = 7)</text>
+
+  <!-- SPS fields -->
+  <!-- Row 1 -->
+  <rect x="55" y="356" width="120" height="28" rx="4" ry="4" fill="#16213e" stroke="#3a5a8e" stroke-width="1"/>
+  <text x="115" y="370" text-anchor="middle" class="field-text mono" fill="#7bbfff">profile_idc</text>
+  <text x="115" y="380" text-anchor="middle" class="label-xs">u(8) - 66/77/100</text>
+
+  <rect x="185" y="356" width="120" height="28" rx="4" ry="4" fill="#16213e" stroke="#3a5a8e" stroke-width="1"/>
+  <text x="245" y="370" text-anchor="middle" class="field-text mono" fill="#7bbfff">level_idc</text>
+  <text x="245" y="380" text-anchor="middle" class="label-xs">u(8) - e.g. 40</text>
+
+  <rect x="315" y="356" width="150" height="28" rx="4" ry="4" fill="#16213e" stroke="#3a5a8e" stroke-width="1"/>
+  <text x="390" y="370" text-anchor="middle" class="field-text mono" fill="#7bbfff">seq_parameter_set_id</text>
+  <text x="390" y="380" text-anchor="middle" class="label-xs">ue(v)</text>
+
+  <!-- Row 2 -->
+  <rect x="55" y="394" width="140" height="28" rx="4" ry="4" fill="#16213e" stroke="#3a5a8e" stroke-width="1"/>
+  <text x="125" y="408" text-anchor="middle" class="field-text mono" fill="#7bbfff">chroma_format_idc</text>
+  <text x="125" y="418" text-anchor="middle" class="label-xs">ue(v) - YUV420/422</text>
+
+  <rect x="205" y="394" width="130" height="28" rx="4" ry="4" fill="#16213e" stroke="#3a5a8e" stroke-width="1"/>
+  <text x="270" y="408" text-anchor="middle" class="field-text mono" fill="#7bbfff">max_num_ref_frames</text>
+  <text x="270" y="418" text-anchor="middle" class="label-xs">ue(v)</text>
+
+  <rect x="345" y="394" width="120" height="28" rx="4" ry="4" fill="#16213e" stroke="#3a5a8e" stroke-width="1"/>
+  <text x="405" y="408" text-anchor="middle" class="field-text mono" fill="#7bbfff">log2_max_frame_num</text>
+  <text x="405" y="418" text-anchor="middle" class="label-xs">ue(v) + 4</text>
+
+  <!-- Row 3 -->
+  <rect x="55" y="432" width="160" height="28" rx="4" ry="4" fill="#16213e" stroke="#3a5a8e" stroke-width="1"/>
+  <text x="135" y="446" text-anchor="middle" class="field-text mono" fill="#7bbfff">pic_width_in_mbs_minus1</text>
+  <text x="135" y="456" text-anchor="middle" class="label-xs">ue(v) - width/16</text>
+
+  <rect x="225" y="432" width="170" height="28" rx="4" ry="4" fill="#16213e" stroke="#3a5a8e" stroke-width="1"/>
+  <text x="310" y="446" text-anchor="middle" class="field-text mono" fill="#7bbfff">pic_height_in_map_units_minus1</text>
+  <text x="310" y="456" text-anchor="middle" class="label-xs">ue(v) - height/16</text>
+
+  <!-- Row 4 -->
+  <rect x="55" y="470" width="200" height="28" rx="4" ry="4" fill="#162233" stroke="#3a5a8e" stroke-width="1"/>
+  <text x="155" y="484" text-anchor="middle" class="field-text mono" fill="#8ecfff">VUI parameters (optional)</text>
+  <text x="155" y="494" text-anchor="middle" class="label-xs">timing, aspect ratio, colour</text>
+
+  <rect x="265" y="470" width="105" height="28" rx="4" ry="4" fill="#162233" stroke="#3a5a8e" stroke-width="1"/>
+  <text x="317" y="484" text-anchor="middle" class="field-text mono" fill="#8ecfff">frame_cropping</text>
+  <text x="317" y="494" text-anchor="middle" class="label-xs">crop offsets</text>
+
+  <rect x="380" y="470" width="85" height="28" rx="4" ry="4" fill="#162233" stroke="#3a5a8e" stroke-width="1"/>
+  <text x="422" y="484" text-anchor="middle" class="field-text mono" fill="#8ecfff">frame_mbs</text>
+  <text x="422" y="494" text-anchor="middle" class="label-xs">only_flag</text>
+
+  <!-- ===== LEVEL 4: SLICE HEADER ===== -->
+  <!-- Slice Header expanded box -->
+  <rect x="500" y="298" width="360" height="215" rx="8" ry="8" fill="#2a0a1a" stroke="#ff4757" stroke-width="1.5" filter="url(#shadow)"/>
+
+  <!-- Slice header bar -->
+  <rect x="500" y="298" width="360" height="28" rx="8" ry="8" fill="#3a0f1f"/>
+  <rect x="500" y="318" width="360" height="8" fill="#3a0f1f"/>
+  <text x="520" y="317" class="label" fill="#ff7b87">Slice Header (inside IDR / Non-IDR NAL)</text>
+
+  <text x="500" y="310" class="level-label" transform="translate(-445, 310) rotate(0)"/>
+
+  <!-- Slice fields -->
+  <!-- Row 1 -->
+  <rect x="515" y="336" width="130" height="28" rx="4" ry="4" fill="#2a1020" stroke="#8a3040" stroke-width="1"/>
+  <text x="580" y="350" text-anchor="middle" class="field-text mono" fill="#ff9aaa">first_mb_in_slice</text>
+  <text x="580" y="360" text-anchor="middle" class="label-xs">ue(v)</text>
+
+  <rect x="655" y="336" width="95" height="28" rx="4" ry="4" fill="#2a1020" stroke="#8a3040" stroke-width="1"/>
+  <text x="702" y="350" text-anchor="middle" class="field-text mono" fill="#ff9aaa">slice_type</text>
+  <text x="702" y="360" text-anchor="middle" class="label-xs">ue(v)</text>
+
+  <rect x="760" y="336" width="85" height="28" rx="4" ry="4" fill="#2a1020" stroke="#8a3040" stroke-width="1"/>
+  <text x="802" y="350" text-anchor="middle" class="field-text mono" fill="#ff9aaa">pps_id</text>
+  <text x="802" y="360" text-anchor="middle" class="label-xs">ue(v)</text>
+
+  <!-- Slice type label -->
+  <rect x="515" y="373" width="330" height="20" rx="3" ry="3" fill="#1a0a15"/>
+  <text x="525" y="387" class="mono label-xs" fill="#aa6677">slice_type: 0=P, 1=B, 2=I, 5=P(all), 6=B(all), 7=I(all)</text>
+
+  <!-- Row 2 -->
+  <rect x="515" y="402" width="100" height="28" rx="4" ry="4" fill="#2a1020" stroke="#8a3040" stroke-width="1"/>
+  <text x="565" y="416" text-anchor="middle" class="field-text mono" fill="#ff9aaa">frame_num</text>
+  <text x="565" y="426" text-anchor="middle" class="label-xs">u(v)</text>
+
+  <rect x="625" y="402" width="130" height="28" rx="4" ry="4" fill="#2a1020" stroke="#8a3040" stroke-width="1"/>
+  <text x="690" y="416" text-anchor="middle" class="field-text mono" fill="#ff9aaa">pic_order_cnt_lsb</text>
+  <text x="690" y="426" text-anchor="middle" class="label-xs">u(v)</text>
+
+  <rect x="765" y="402" width="80" height="28" rx="4" ry="4" fill="#2a1020" stroke="#8a3040" stroke-width="1"/>
+  <text x="805" y="416" text-anchor="middle" class="field-text mono" fill="#ff9aaa">field_pic</text>
+  <text x="805" y="426" text-anchor="middle" class="label-xs">u(1)</text>
+
+  <!-- Row 3 -->
+  <rect x="515" y="440" width="165" height="28" rx="4" ry="4" fill="#22101a" stroke="#6a2535" stroke-width="1"/>
+  <text x="597" y="454" text-anchor="middle" class="field-text mono" fill="#dd8899">ref_pic_list_modification</text>
+  <text x="597" y="464" text-anchor="middle" class="label-xs">reorder ref pictures</text>
+
+  <rect x="690" y="440" width="155" height="28" rx="4" ry="4" fill="#22101a" stroke="#6a2535" stroke-width="1"/>
+  <text x="767" y="454" text-anchor="middle" class="field-text mono" fill="#dd8899">dec_ref_pic_marking</text>
+  <text x="767" y="464" text-anchor="middle" class="label-xs">MMCO / sliding window</text>
+
+  <!-- Row 4 -->
+  <rect x="515" y="478" width="120" height="28" rx="4" ry="4" fill="#22101a" stroke="#6a2535" stroke-width="1"/>
+  <text x="575" y="492" text-anchor="middle" class="field-text mono" fill="#dd8899">slice_qp_delta</text>
+  <text x="575" y="502" text-anchor="middle" class="label-xs">se(v)</text>
+
+  <rect x="645" y="478" width="200" height="28" rx="4" ry="4" fill="#22101a" stroke="#6a2535" stroke-width="1"/>
+  <text x="745" y="492" text-anchor="middle" class="field-text mono" fill="#dd8899">disable_deblocking_filter_idc</text>
+  <text x="745" y="502" text-anchor="middle" class="label-xs">ue(v)</text>
+
+  <!-- Level 4 label -->
+  <text x="500" y="530" class="level-label">LEVEL 4</text>
+  <text x="565" y="530" class="subtitle">Slice Header Fields</text>
+
+  <!-- Level 3 label (repositioned) -->
+  <text x="40" y="530" class="level-label">LEVEL 3</text>
+  <text x="105" y="530" class="subtitle">Parameter Set Fields</text>
+
+
+  <!-- ===== LEVEL 5 (SIDE): picoH264 Parser Box ===== -->
+  <rect x="40" y="560" width="820" height="165" rx="10" ry="10" fill="#111122" stroke="#4a4a6e" stroke-width="2" filter="url(#shadow)"/>
+
+  <!-- Title bar -->
+  <rect x="40" y="560" width="820" height="32" rx="10" ry="10" fill="#1a1a33"/>
+  <rect x="40" y="582" width="820" height="10" fill="#1a1a33"/>
+  <text x="65" y="581" class="parser-title">picoH264 Parser</text>
+  <text x="240" y="581" font-size="10" fill="#666688" font-family="Inter, Segoe UI, sans-serif">-- Lightweight H.264 bitstream syntax parser --</text>
+
+  <!-- NOT a decoder warning -->
+  <rect x="60" y="602" width="200" height="30" rx="5" ry="5" fill="#2a0a0a" stroke="#ff4757" stroke-width="1.5"/>
+  <text x="82" y="618" class="parser-warn" fill="#ff6b6b">NOT a video decoder</text>
+  <text x="200" y="622" class="label-xs" fill="#ff6b6b">!</text>
+
+  <!-- What it does -->
+  <rect x="275" y="602" width="260" height="30" rx="5" ry="5" fill="#0a2a0a" stroke="#4adf7f" stroke-width="1"/>
+  <text x="290" y="622" class="parser-ok">Parses syntax elements only</text>
+
+  <rect x="550" y="602" width="295" height="30" rx="5" ry="5" fill="#0a1a2a" stroke="#4a9eff" stroke-width="1"/>
+  <text x="565" y="622" class="parser-ok" fill="#7bbfff">Feeds Vulkan Video / HW decoders</text>
+
+  <!-- Details section -->
+  <rect x="60" y="645" width="380" height="67" rx="5" ry="5" fill="#0d0d1e" stroke="#2a2a4a" stroke-width="1"/>
+  <text x="75" y="661" class="parser-text" fill="#aaaacc">What picoH264 extracts:</text>
+  <text x="85" y="676" class="mono label-xs" fill="#6bcb77">SPS / PPS parameters</text>
+  <text x="230" y="676" class="mono label-xs" fill="#ff9aaa">Slice header fields</text>
+  <text x="85" y="690" class="mono label-xs" fill="#ccccdd">NAL unit boundaries</text>
+  <text x="230" y="690" class="mono label-xs" fill="#ccccdd">Exp-Golomb coded values</text>
+  <text x="85" y="704" class="mono label-xs" fill="#ccccdd">DPB management info</text>
+  <text x="230" y="704" class="mono label-xs" fill="#ccccdd">Reference picture lists</text>
+
+  <!-- Pipeline flow -->
+  <rect x="460" y="645" width="385" height="67" rx="5" ry="5" fill="#0d0d1e" stroke="#2a2a4a" stroke-width="1"/>
+  <text x="475" y="661" class="parser-text" fill="#aaaacc">Pipeline flow:</text>
+
+  <!-- Flow diagram -->
+  <rect x="475" y="670" width="75" height="24" rx="4" ry="4" fill="#16213e" stroke="#4a9eff" stroke-width="1"/>
+  <text x="512" y="686" text-anchor="middle" class="mono label-xs" fill="#7bbfff">H.264 file</text>
+
+  <line x1="552" y1="682" x2="570" y2="682" stroke="#555577" stroke-width="1.2" marker-end="url(#arrowhead)"/>
+
+  <rect x="573" y="670" width="70" height="24" rx="4" ry="4" fill="#1a1a33" stroke="#ffd700" stroke-width="1"/>
+  <text x="608" y="686" text-anchor="middle" class="mono label-xs" fill="#ffd700">picoH264</text>
+
+  <line x1="645" y1="682" x2="663" y2="682" stroke="#555577" stroke-width="1.2" marker-end="url(#arrowhead)"/>
+
+  <rect x="666" y="670" width="80" height="24" rx="4" ry="4" fill="#0f3a1f" stroke="#4adf7f" stroke-width="1"/>
+  <text x="706" y="686" text-anchor="middle" class="mono label-xs" fill="#4adf7f">Vulkan Video</text>
+
+  <line x1="748" y1="682" x2="766" y2="682" stroke="#555577" stroke-width="1.2" marker-end="url(#arrowhead)"/>
+
+  <rect x="769" y="670" width="60" height="24" rx="4" ry="4" fill="#2a1020" stroke="#ff4757" stroke-width="1"/>
+  <text x="799" y="686" text-anchor="middle" class="mono label-xs" fill="#ff7b87">GPU HW</text>
+
+  <text x="512" y="706" text-anchor="middle" class="label-xs" fill="#555577">bitstream</text>
+  <text x="608" y="706" text-anchor="middle" class="label-xs" fill="#555577">parser</text>
+  <text x="706" y="706" text-anchor="middle" class="label-xs" fill="#555577">API</text>
+  <text x="799" y="706" text-anchor="middle" class="label-xs" fill="#555577">decoder</text>
+
+
+  <!-- ===== LEGEND ===== -->
+  <rect x="40" y="745" width="820" height="55" rx="8" ry="8" fill="#111122" stroke="#2a2a4a" stroke-width="1"/>
+  <text x="60" y="766" class="subtitle">NAL Type Legend:</text>
+
+  <!-- Legend items -->
+  <rect x="185" y="755" width="14" height="14" rx="3" ry="3" fill="#2a2a3e" stroke="#888899" stroke-width="1"/>
+  <text x="205" y="766" class="label-sm">AUD (9) / SEI (6)</text>
+
+  <rect x="325" y="755" width="14" height="14" rx="3" ry="3" fill="#0f2a4d" stroke="#4a9eff" stroke-width="1.5"/>
+  <text x="345" y="766" class="label-sm" fill="#7bbfff">SPS (7)</text>
+
+  <rect x="405" y="755" width="14" height="14" rx="3" ry="3" fill="#0f3a1f" stroke="#4adf7f" stroke-width="1.5"/>
+  <text x="425" y="766" class="label-sm" fill="#7befa0">PPS (8)</text>
+
+  <rect x="485" y="755" width="14" height="14" rx="3" ry="3" fill="#3a0f1f" stroke="#ff4757" stroke-width="1.5"/>
+  <text x="505" y="766" class="label-sm" fill="#ff7b87">IDR Slice (5)</text>
+
+  <rect x="610" y="755" width="14" height="14" rx="3" ry="3" fill="#3a2a0f" stroke="#ff9f43" stroke-width="1.5"/>
+  <text x="630" y="766" class="label-sm" fill="#ffbf73">Non-IDR Slice (1)</text>
+
+  <rect x="185" y="778" width="14" height="14" rx="3" ry="3" fill="#3d2e00" stroke="#ffd700" stroke-width="1"/>
+  <text x="205" y="789" class="label-sm" fill="#ffd700">Start Code (00 00 00 01)</text>
+
+  <text x="405" y="789" class="mono label-xs" fill="#555577">ue(v) = Exp-Golomb unsigned | se(v) = Exp-Golomb signed | u(n) = unsigned n bits</text>
+
+  <!-- Watermark -->
+  <text x="810" y="830" text-anchor="end" font-size="9" fill="#2a2a44" font-family="Inter, Segoe UI, sans-serif">AdvancedVulkanDemos -- H.264 Bitstream Reference</text>
+
+</svg>

@@ -1,0 +1,421 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1000" width="1200" height="1000">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0f0f1a"/>
+    </linearGradient>
+    <!-- Box gradients -->
+    <linearGradient id="topGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e94560"/>
+      <stop offset="100%" stop-color="#c2185b"/>
+    </linearGradient>
+    <linearGradient id="vertexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff6b6b"/>
+      <stop offset="100%" stop-color="#d63031"/>
+    </linearGradient>
+    <linearGradient id="sectionGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#16213e"/>
+      <stop offset="100%" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="rayGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0984e3"/>
+      <stop offset="100%" stop-color="#6c5ce7"/>
+    </linearGradient>
+    <linearGradient id="marchGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6c5ce7"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="sdfGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00b894"/>
+      <stop offset="100%" stop-color="#00cec9"/>
+    </linearGradient>
+    <linearGradient id="shadeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fdcb6e"/>
+      <stop offset="100%" stop-color="#e17055"/>
+    </linearGradient>
+    <linearGradient id="tvGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00b4d8"/>
+      <stop offset="100%" stop-color="#0077b6"/>
+    </linearGradient>
+    <linearGradient id="postGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e040fb"/>
+      <stop offset="100%" stop-color="#7c4dff"/>
+    </linearGradient>
+    <linearGradient id="outputGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00e676"/>
+      <stop offset="100%" stop-color="#00c853"/>
+    </linearGradient>
+    <linearGradient id="arrowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e94560"/>
+      <stop offset="100%" stop-color="#00e676"/>
+    </linearGradient>
+    <!-- Glow filter -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <!-- Arrow marker -->
+    <marker id="arrowHead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#e94560"/>
+    </marker>
+    <marker id="arrowHeadBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#0984e3"/>
+    </marker>
+    <marker id="arrowHeadGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#00e676"/>
+    </marker>
+    <marker id="arrowHeadWhite" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ffffff80"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="1000" fill="none"/>
+
+  <!-- Title -->
+  <text x="600" y="30" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="bold" filter="url(#glow)">HLS Player - Shader Rendering Pipeline</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: FULLSCREEN QUAD (TOP) -->
+  <!-- ============================================================ -->
+
+  <!-- Top box -->
+  <rect x="360" y="44" width="480" height="38" rx="6" fill="url(#topGrad)" opacity="0.95" filter="url(#softGlow)"/>
+  <text x="600" y="68" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="bold">Fullscreen Quad</text>
+  <text x="600" y="80" text-anchor="middle" fill="#ffcdd2" font-family="Consolas, monospace" font-size="9">6 vertices | No Vertex Buffer</text>
+
+  <!-- Vertex Shader box -->
+  <rect x="320" y="90" width="560" height="42" rx="6" fill="url(#vertexGrad)" opacity="0.85"/>
+  <text x="600" y="107" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="bold">Vertex Shader</text>
+  <text x="600" y="125" text-anchor="middle" fill="#ffe0e0" font-family="Consolas, monospace" font-size="10">SV_VertexID  -->  static positions[]  -->  SV_Position + UV</text>
+
+  <!-- Arrow: Vertex -> Fragment Pipeline -->
+  <line x1="600" y1="132" x2="600" y2="145" stroke="#e94560" stroke-width="2" marker-end="url(#arrowHead)"/>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: FRAGMENT SHADER PIPELINE (MIDDLE) -->
+  <!-- ============================================================ -->
+
+  <!-- Pipeline outer container -->
+  <rect x="30" y="148" width="1140" height="790" rx="10" fill="url(#sectionGrad)" stroke="#ffffff15" stroke-width="1"/>
+  <text x="600" y="170" text-anchor="middle" fill="#e94560" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="bold" filter="url(#softGlow)">Fragment Shader Pipeline</text>
+
+  <!-- ============================================================ -->
+  <!-- ROW 1: Camera Ray Construction + Ray Marching -->
+  <!-- ============================================================ -->
+
+  <!-- (a) Camera Ray Construction -->
+  <rect x="50" y="182" width="360" height="130" rx="8" fill="#0d1b3e" stroke="#0984e3" stroke-width="1.2" opacity="0.95"/>
+  <rect x="50" y="182" width="360" height="24" rx="8" fill="url(#rayGrad)" opacity="0.7"/>
+  <rect x="50" y="198" width="360" height="8" rx="0" fill="#0d1b3e"/>
+  <text x="230" y="198" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="bold">(a) Camera Ray Construction</text>
+
+  <text x="68" y="225" fill="#74b9ff" font-family="Consolas, monospace" font-size="10">Push Constants:</text>
+  <text x="68" y="240" fill="#dfe6e9" font-family="Consolas, monospace" font-size="10">  vec3 cameraPosition</text>
+  <text x="68" y="253" fill="#dfe6e9" font-family="Consolas, monospace" font-size="10">  vec3 cameraDirection</text>
+  <text x="68" y="273" fill="#74b9ff" font-family="Consolas, monospace" font-size="10">Build orthonormal basis:</text>
+  <text x="68" y="288" fill="#dfe6e9" font-family="Consolas, monospace" font-size="10">  right = cross(up, forward)</text>
+  <text x="68" y="301" fill="#dfe6e9" font-family="Consolas, monospace" font-size="10">  fov = 2.0</text>
+
+  <!-- (b) Ray Marching -->
+  <rect x="440" y="182" width="360" height="130" rx="8" fill="#1a0a3e" stroke="#6c5ce7" stroke-width="1.2" opacity="0.95"/>
+  <rect x="440" y="182" width="360" height="24" rx="8" fill="url(#marchGrad)" opacity="0.7"/>
+  <rect x="440" y="198" width="360" height="8" rx="0" fill="#1a0a3e"/>
+  <text x="620" y="198" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="bold">(b) Ray Marching</text>
+
+  <text x="458" y="225" fill="#a29bfe" font-family="Consolas, monospace" font-size="10">for (i = 0; i &lt; 64; i++) {</text>
+  <text x="458" y="240" fill="#dfe6e9" font-family="Consolas, monospace" font-size="10">  d = mapScene(pos)</text>
+  <text x="458" y="255" fill="#dfe6e9" font-family="Consolas, monospace" font-size="10">  if (d &lt; 0.01) break; // hit!</text>
+  <text x="458" y="270" fill="#dfe6e9" font-family="Consolas, monospace" font-size="10">  pos += ray * d;</text>
+  <text x="458" y="285" fill="#a29bfe" font-family="Consolas, monospace" font-size="10">}</text>
+  <text x="458" y="303" fill="#b388ff" font-family="Consolas, monospace" font-size="10">returns (distance, materialId)</text>
+
+  <!-- Loop icon for ray marching -->
+  <path d="M 790 235 Q 810 215 810 245 Q 810 275 790 255" fill="none" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrowHeadWhite)"/>
+  <text x="815" y="248" fill="#a855f7" font-family="Consolas, monospace" font-size="9">64x</text>
+
+  <!-- Arrow: Camera -> Ray Marching -->
+  <line x1="410" y1="247" x2="438" y2="247" stroke="#6c5ce7" stroke-width="1.5" marker-end="url(#arrowHeadBlue)"/>
+
+  <!-- ============================================================ -->
+  <!-- ROW 1 SIDE: Scene SDF (tall box on the right) -->
+  <!-- ============================================================ -->
+
+  <rect x="840" y="182" width="310" height="250" rx="8" fill="#0a2a1e" stroke="#00b894" stroke-width="1.2" opacity="0.95"/>
+  <rect x="840" y="182" width="310" height="24" rx="8" fill="url(#sdfGrad)" opacity="0.7"/>
+  <rect x="840" y="198" width="310" height="8" rx="0" fill="#0a2a1e"/>
+  <text x="995" y="198" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="bold">(c) Scene SDF Composition</text>
+
+  <!-- Floor -->
+  <rect x="858" y="214" width="130" height="22" rx="4" fill="#1a3a2a" stroke="#55efc4" stroke-width="0.8"/>
+  <text x="923" y="229" text-anchor="middle" fill="#55efc4" font-family="Consolas, monospace" font-size="10">Floor (y = 0)</text>
+
+  <!-- TV SDF -->
+  <rect x="1000" y="214" width="132" height="22" rx="4" fill="#1a3a2a" stroke="#55efc4" stroke-width="0.8"/>
+  <text x="1066" y="229" text-anchor="middle" fill="#55efc4" font-family="Consolas, monospace" font-size="10">4x Retro TVs</text>
+
+  <!-- TV primitives breakdown -->
+  <text x="858" y="256" fill="#00cec9" font-family="Consolas, monospace" font-size="10">Each TV (~15 SDF primitives):</text>
+
+  <!-- TV component boxes - row 1 -->
+  <rect x="858" y="264" width="88" height="20" rx="3" fill="#0d3326" stroke="#00b89455" stroke-width="0.7"/>
+  <text x="902" y="278" text-anchor="middle" fill="#81ecec" font-family="Consolas, monospace" font-size="9">Body</text>
+
+  <rect x="952" y="264" width="88" height="20" rx="3" fill="#0d3326" stroke="#00b89455" stroke-width="0.7"/>
+  <text x="996" y="278" text-anchor="middle" fill="#81ecec" font-family="Consolas, monospace" font-size="9">Screen</text>
+
+  <rect x="1046" y="264" width="88" height="20" rx="3" fill="#0d3326" stroke="#00b89455" stroke-width="0.7"/>
+  <text x="1090" y="278" text-anchor="middle" fill="#81ecec" font-family="Consolas, monospace" font-size="9">Bezel</text>
+
+  <!-- TV component boxes - row 2 -->
+  <rect x="858" y="290" width="88" height="20" rx="3" fill="#0d3326" stroke="#00b89455" stroke-width="0.7"/>
+  <text x="902" y="304" text-anchor="middle" fill="#81ecec" font-family="Consolas, monospace" font-size="9">Knobs</text>
+
+  <rect x="952" y="290" width="88" height="20" rx="3" fill="#0d3326" stroke="#00b89455" stroke-width="0.7"/>
+  <text x="996" y="304" text-anchor="middle" fill="#81ecec" font-family="Consolas, monospace" font-size="9">Legs</text>
+
+  <rect x="1046" y="290" width="88" height="20" rx="3" fill="#0d3326" stroke="#00b89455" stroke-width="0.7"/>
+  <text x="1090" y="304" text-anchor="middle" fill="#81ecec" font-family="Consolas, monospace" font-size="9">Antennas</text>
+
+  <!-- SDF operations -->
+  <text x="858" y="332" fill="#00cec9" font-family="Consolas, monospace" font-size="10">SDF Operations:</text>
+  <text x="858" y="347" fill="#b2dfdb" font-family="Consolas, monospace" font-size="9">opUnion(a, b)</text>
+  <text x="858" y="361" fill="#b2dfdb" font-family="Consolas, monospace" font-size="9">opSubtract(a, b)</text>
+  <text x="858" y="375" fill="#b2dfdb" font-family="Consolas, monospace" font-size="9">opSmoothUnion(a, b, k)</text>
+  <text x="1010" y="347" fill="#b2dfdb" font-family="Consolas, monospace" font-size="9">sdBox()</text>
+  <text x="1010" y="361" fill="#b2dfdb" font-family="Consolas, monospace" font-size="9">sdCylinder()</text>
+  <text x="1010" y="375" fill="#b2dfdb" font-family="Consolas, monospace" font-size="9">sdCapsule()</text>
+
+  <!-- Min/union label -->
+  <text x="858" y="395" fill="#00b894" font-family="Consolas, monospace" font-size="9">result = min(floor, TV1, TV2, TV3, TV4)</text>
+  <text x="858" y="410" fill="#00b89488" font-family="Consolas, monospace" font-size="9">returns vec2(distance, materialId)</text>
+
+  <!-- Arrow: Ray Marching -> SDF (bidirectional query) -->
+  <line x1="800" y1="260" x2="838" y2="280" stroke="#00b894" stroke-width="1.5" marker-end="url(#arrowHeadGreen)"/>
+  <text x="808" y="256" fill="#00b894" font-family="Consolas, monospace" font-size="8">query</text>
+
+  <!-- ============================================================ -->
+  <!-- ROW 2: Shading + TV Screen Rendering -->
+  <!-- ============================================================ -->
+
+  <!-- Arrows from row 1 to row 2 -->
+  <line x1="230" y1="312" x2="230" y2="330" stroke="#ffffff30" stroke-width="1"/>
+  <line x1="230" y1="330" x2="310" y2="445" stroke="#fdcb6e" stroke-width="1.5" marker-end="url(#arrowHeadWhite)"/>
+
+  <line x1="620" y1="312" x2="620" y2="330" stroke="#ffffff30" stroke-width="1"/>
+  <line x1="620" y1="330" x2="310" y2="445" stroke="#fdcb6e" stroke-width="1.5" stroke-dasharray="4 2"/>
+
+  <!-- (d) Shading -->
+  <rect x="50" y="445" width="530" height="200" rx="8" fill="#2a1a0a" stroke="#fdcb6e" stroke-width="1.2" opacity="0.95"/>
+  <rect x="50" y="445" width="530" height="24" rx="8" fill="url(#shadeGrad)" opacity="0.7"/>
+  <rect x="50" y="461" width="530" height="8" rx="0" fill="#2a1a0a"/>
+  <text x="315" y="462" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="bold">(d) Shading</text>
+
+  <!-- 5-light setup -->
+  <text x="68" y="490" fill="#ffeaa7" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="bold">5-Light Setup</text>
+
+  <!-- Light icons as small circles -->
+  <circle cx="78" cy="510" r="8" fill="#fff176" opacity="0.9"/>
+  <text x="92" y="514" fill="#fff9c4" font-family="Consolas, monospace" font-size="10">Sun (directional)</text>
+
+  <circle cx="78" cy="530" r="8" fill="#81d4fa" opacity="0.9"/>
+  <text x="92" y="534" fill="#b3e5fc" font-family="Consolas, monospace" font-size="10">Sky (hemisphere)</text>
+
+  <circle cx="78" cy="550" r="8" fill="#a5d6a7" opacity="0.9"/>
+  <text x="92" y="554" fill="#c8e6c9" font-family="Consolas, monospace" font-size="10">Bounce (indirect)</text>
+
+  <circle cx="268" cy="510" r="8" fill="#ce93d8" opacity="0.9"/>
+  <text x="282" y="514" fill="#e1bee7" font-family="Consolas, monospace" font-size="10">Fill (ambient)</text>
+
+  <circle cx="268" cy="530" r="8" fill="#ef9a9a" opacity="0.9"/>
+  <text x="282" y="534" fill="#ffcdd2" font-family="Consolas, monospace" font-size="10">Rim (backlight)</text>
+
+  <!-- Shadow + Material -->
+  <text x="68" y="580" fill="#ffeaa7" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="bold">Techniques</text>
+  <rect x="68" y="588" width="160" height="18" rx="3" fill="#3a2a0a" stroke="#fdcb6e44" stroke-width="0.7"/>
+  <text x="148" y="601" text-anchor="middle" fill="#ffeaa7" font-family="Consolas, monospace" font-size="9">Soft Shadows (64 iter)</text>
+
+  <rect x="238" y="588" width="130" height="18" rx="3" fill="#3a2a0a" stroke="#fdcb6e44" stroke-width="0.7"/>
+  <text x="303" y="601" text-anchor="middle" fill="#ffeaa7" font-family="Consolas, monospace" font-size="9">Phong Specular</text>
+
+  <rect x="378" y="588" width="180" height="18" rx="3" fill="#3a2a0a" stroke="#fdcb6e44" stroke-width="0.7"/>
+  <text x="468" y="601" text-anchor="middle" fill="#ffeaa7" font-family="Consolas, monospace" font-size="9">Materials (10+ IDs)</text>
+
+  <!-- Material color swatches -->
+  <rect x="68" y="616" width="16" height="16" rx="2" fill="#e74c3c"/>
+  <rect x="88" y="616" width="16" height="16" rx="2" fill="#3498db"/>
+  <rect x="108" y="616" width="16" height="16" rx="2" fill="#2ecc71"/>
+  <rect x="128" y="616" width="16" height="16" rx="2" fill="#f39c12"/>
+  <rect x="148" y="616" width="16" height="16" rx="2" fill="#9b59b6"/>
+  <rect x="168" y="616" width="16" height="16" rx="2" fill="#1abc9c"/>
+  <rect x="188" y="616" width="16" height="16" rx="2" fill="#e67e22"/>
+  <rect x="208" y="616" width="16" height="16" rx="2" fill="#ecf0f1"/>
+  <rect x="228" y="616" width="16" height="16" rx="2" fill="#34495e"/>
+  <rect x="248" y="616" width="16" height="16" rx="2" fill="#d35400"/>
+  <text x="275" y="629" fill="#b0926a" font-family="Consolas, monospace" font-size="9">materialId -> color + roughness</text>
+
+  <!-- (e) TV Screen Rendering -->
+  <rect x="610" y="445" width="540" height="200" rx="8" fill="#0a1a2a" stroke="#00b4d8" stroke-width="1.2" opacity="0.95"/>
+  <rect x="610" y="445" width="540" height="24" rx="8" fill="url(#tvGrad)" opacity="0.7"/>
+  <rect x="610" y="461" width="540" height="8" rx="0" fill="#0a1a2a"/>
+  <text x="880" y="462" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="bold">(e) TV Screen Rendering</text>
+
+  <!-- NV12 texture sampling -->
+  <text x="628" y="490" fill="#90caf9" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="bold">NV12 Texture Sampling</text>
+
+  <!-- Y plane box -->
+  <rect x="628" y="500" width="120" height="40" rx="5" fill="#1a2a3a" stroke="#42a5f5" stroke-width="1"/>
+  <text x="688" y="518" text-anchor="middle" fill="#90caf9" font-family="Consolas, monospace" font-size="11" font-weight="bold">Y Plane</text>
+  <text x="688" y="533" text-anchor="middle" fill="#64b5f6" font-family="Consolas, monospace" font-size="9">Luminance</text>
+
+  <!-- CbCr plane box -->
+  <rect x="766" y="500" width="120" height="40" rx="5" fill="#1a2a3a" stroke="#42a5f5" stroke-width="1"/>
+  <text x="826" y="518" text-anchor="middle" fill="#90caf9" font-family="Consolas, monospace" font-size="11" font-weight="bold">CbCr Plane</text>
+  <text x="826" y="533" text-anchor="middle" fill="#64b5f6" font-family="Consolas, monospace" font-size="9">Chrominance</text>
+
+  <!-- Arrow: Y + CbCr -> Conversion -->
+  <line x1="748" y1="540" x2="748" y2="554" stroke="#42a5f5" stroke-width="1" marker-end="url(#arrowHeadBlue)"/>
+  <line x1="826" y1="540" x2="826" y2="548" stroke="#42a5f5" stroke-width="1"/>
+  <line x1="826" y1="548" x2="780" y2="548" stroke="#42a5f5" stroke-width="1"/>
+  <line x1="780" y1="548" x2="780" y2="554" stroke="#42a5f5" stroke-width="1"/>
+
+  <!-- YCbCr conversion box -->
+  <rect x="628" y="558" width="258" height="30" rx="5" fill="#0d2137" stroke="#00b4d8" stroke-width="1"/>
+  <text x="757" y="577" text-anchor="middle" fill="#4dd0e1" font-family="Consolas, monospace" font-size="10">YCbCr BT.601 -> RGB Conversion</text>
+
+  <!-- Gamma -->
+  <rect x="628" y="596" width="150" height="22" rx="4" fill="#0d2137" stroke="#00b4d855" stroke-width="0.7"/>
+  <text x="703" y="611" text-anchor="middle" fill="#80deea" font-family="Consolas, monospace" font-size="10">Gamma (2.2)</text>
+
+  <!-- Effects -->
+  <text x="920" y="490" fill="#90caf9" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="bold">Screen Effects</text>
+
+  <rect x="920" y="500" width="210" height="22" rx="4" fill="#0d2137" stroke="#00b4d855" stroke-width="0.7"/>
+  <text x="1025" y="515" text-anchor="middle" fill="#80deea" font-family="Consolas, monospace" font-size="10">Vignette darkening</text>
+
+  <rect x="920" y="530" width="210" height="22" rx="4" fill="#0d2137" stroke="#00b4d855" stroke-width="0.7"/>
+  <text x="1025" y="545" text-anchor="middle" fill="#80deea" font-family="Consolas, monospace" font-size="10">Fresnel reflection</text>
+
+  <!-- Mini formula -->
+  <text x="628" y="640" fill="#4dd0e188" font-family="Consolas, monospace" font-size="9">R = 1.164*(Y-16) + 1.596*(Cr-128)</text>
+  <text x="900" y="640" fill="#4dd0e188" font-family="Consolas, monospace" font-size="9">G = 1.164*(Y-16) - 0.813*(Cr-128) - 0.391*(Cb-128)</text>
+
+  <!-- ============================================================ -->
+  <!-- ROW 3: Post-Processing (full width) -->
+  <!-- ============================================================ -->
+
+  <!-- Arrows from row 2 to row 3 -->
+  <line x1="315" y1="645" x2="315" y2="658" stroke="#ffffff30" stroke-width="1"/>
+  <line x1="315" y1="658" x2="420" y2="668" stroke="#e040fb88" stroke-width="1.5"/>
+  <line x1="880" y1="645" x2="880" y2="658" stroke="#ffffff30" stroke-width="1"/>
+  <line x1="880" y1="658" x2="780" y2="668" stroke="#e040fb88" stroke-width="1.5"/>
+
+  <!-- (f) Post-Processing -->
+  <rect x="50" y="668" width="1100" height="110" rx="8" fill="#1a0a2a" stroke="#e040fb" stroke-width="1.2" opacity="0.95"/>
+  <rect x="50" y="668" width="1100" height="24" rx="8" fill="url(#postGrad)" opacity="0.7"/>
+  <rect x="50" y="684" width="1100" height="8" rx="0" fill="#1a0a2a"/>
+  <text x="600" y="685" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="bold">(f) Post-Processing</text>
+
+  <!-- Pipeline stages as connected boxes -->
+  <!-- ACES Tonemapping -->
+  <rect x="80" y="702" width="200" height="55" rx="6" fill="#2a0a3a" stroke="#e040fb55" stroke-width="0.8"/>
+  <text x="180" y="720" text-anchor="middle" fill="#ea80fc" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="bold">ACES Tonemapping</text>
+  <text x="180" y="738" text-anchor="middle" fill="#ce93d8" font-family="Consolas, monospace" font-size="9">x*(2.51x+0.03) /</text>
+  <text x="180" y="750" text-anchor="middle" fill="#ce93d8" font-family="Consolas, monospace" font-size="9">(x*(2.43x+0.59)+0.14)</text>
+
+  <!-- Arrow -->
+  <line x1="280" y1="730" x2="310" y2="730" stroke="#e040fb66" stroke-width="1.5" marker-end="url(#arrowHeadWhite)"/>
+
+  <!-- Color Grading -->
+  <rect x="315" y="702" width="220" height="55" rx="6" fill="#2a0a3a" stroke="#e040fb55" stroke-width="0.8"/>
+  <text x="425" y="720" text-anchor="middle" fill="#ea80fc" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="bold">Color Grading</text>
+  <text x="425" y="738" text-anchor="middle" fill="#ce93d8" font-family="Consolas, monospace" font-size="9">Warm shadows</text>
+  <text x="425" y="750" text-anchor="middle" fill="#ce93d8" font-family="Consolas, monospace" font-size="9">Cool highlights</text>
+
+  <!-- Arrow -->
+  <line x1="535" y1="730" x2="565" y2="730" stroke="#e040fb66" stroke-width="1.5" marker-end="url(#arrowHeadWhite)"/>
+
+  <!-- Contrast Enhancement -->
+  <rect x="570" y="702" width="220" height="55" rx="6" fill="#2a0a3a" stroke="#e040fb55" stroke-width="0.8"/>
+  <text x="680" y="720" text-anchor="middle" fill="#ea80fc" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="bold">Contrast Enhancement</text>
+  <text x="680" y="738" text-anchor="middle" fill="#ce93d8" font-family="Consolas, monospace" font-size="9">S-curve contrast</text>
+  <text x="680" y="750" text-anchor="middle" fill="#ce93d8" font-family="Consolas, monospace" font-size="9">Saturation boost</text>
+
+  <!-- Arrow -->
+  <line x1="790" y1="730" x2="820" y2="730" stroke="#e040fb66" stroke-width="1.5" marker-end="url(#arrowHeadWhite)"/>
+
+  <!-- Distance Fog -->
+  <rect x="825" y="702" width="300" height="55" rx="6" fill="#2a0a3a" stroke="#e040fb55" stroke-width="0.8"/>
+  <text x="975" y="720" text-anchor="middle" fill="#ea80fc" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="bold">Distance Fog</text>
+  <text x="975" y="738" text-anchor="middle" fill="#ce93d8" font-family="Consolas, monospace" font-size="9">fog = 1.0 - exp(-dist * density)</text>
+  <text x="975" y="750" text-anchor="middle" fill="#ce93d8" font-family="Consolas, monospace" font-size="9">mix(color, fogColor, fog)</text>
+
+  <!-- ============================================================ -->
+  <!-- ROW 4: Data flow labels on left margin -->
+  <!-- ============================================================ -->
+
+  <!-- Left side vertical flow label -->
+  <text x="20" y="400" text-anchor="middle" fill="#ffffff22" font-family="Segoe UI, Arial, sans-serif" font-size="60" font-weight="bold" transform="rotate(-90, 20, 400)">DATA FLOW</text>
+
+  <!-- ============================================================ -->
+  <!-- Arrow: Post-Processing -> Output -->
+  <!-- ============================================================ -->
+  <line x1="600" y1="780" x2="600" y2="800" stroke="#e040fb" stroke-width="2"/>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: FINAL OUTPUT (BOTTOM) -->
+  <!-- ============================================================ -->
+
+  <!-- Decorative line above output -->
+  <line x1="200" y1="800" x2="1000" y2="800" stroke="#ffffff10" stroke-width="1"/>
+
+  <!-- Arrow into output -->
+  <line x1="600" y1="800" x2="600" y2="810" stroke="#00e676" stroke-width="2" marker-end="url(#arrowHeadGreen)"/>
+
+  <!-- Final output box with glow -->
+  <rect x="360" y="818" width="480" height="45" rx="8" fill="url(#outputGrad)" opacity="0.9" filter="url(#glow)"/>
+  <text x="600" y="840" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="bold">Final Output</text>
+  <text x="600" y="857" text-anchor="middle" fill="#1b5e20" font-family="Consolas, monospace" font-size="11" font-weight="bold">SV_Target (float4 RGBA)</text>
+
+  <!-- ============================================================ -->
+  <!-- Main vertical flow arrows (left side) -->
+  <!-- ============================================================ -->
+
+  <!-- Decorative vertical dashed line showing overall flow -->
+  <line x1="40" y1="60" x2="40" y2="840" stroke="#e9456033" stroke-width="1" stroke-dasharray="6 4"/>
+
+  <!-- Flow dots along the left -->
+  <circle cx="40" cy="68" r="4" fill="#e94560"/>
+  <circle cx="40" cy="247" r="4" fill="#0984e3"/>
+  <circle cx="40" cy="445" r="4" fill="#fdcb6e"/>
+  <circle cx="40" cy="668" r="4" fill="#e040fb"/>
+  <circle cx="40" cy="840" r="4" fill="#00e676"/>
+
+  <!-- ============================================================ -->
+  <!-- Footer note -->
+  <!-- ============================================================ -->
+  <text x="600" y="885" text-anchor="middle" fill="#ffffff44" font-family="Segoe UI, Arial, sans-serif" font-size="10">HLS Player Shader Pipeline | Ray Marched SDF Scene with NV12 Video Textures</text>
+  <text x="600" y="900" text-anchor="middle" fill="#ffffff28" font-family="Consolas, monospace" font-size="9">All rendering computed per-fragment in a single shader pass</text>
+
+  <!-- ============================================================ -->
+  <!-- Connection lines between SDF and Shading -->
+  <!-- ============================================================ -->
+  <path d="M 995 432 Q 995 440 700 440 Q 315 440 315 445" fill="none" stroke="#00b89444" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="660" y="438" fill="#00b89466" font-family="Consolas, monospace" font-size="8">materialId</text>
+
+  <!-- Connection from SDF to TV Screen -->
+  <path d="M 995 432 Q 995 440 880 440 Q 880 440 880 445" fill="none" stroke="#00b4d844" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="945" y="438" fill="#00b4d866" font-family="Consolas, monospace" font-size="8">screenUV</text>
+
+</svg>

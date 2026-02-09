@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+
+  <style>
+    text { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }
+    .title { font-size: 18px; font-weight: bold; fill: #e0e0e0; }
+    .subtitle { font-size: 12px; fill: #777; }
+    .label { font-size: 12px; fill: #d0d0d0; }
+    .label-sm { font-size: 10px; fill: #999; }
+    .label-tv { font-size: 13px; font-weight: bold; fill: #f0c050; }
+    .label-pos { font-size: 9px; font-family: 'Consolas', 'Courier New', monospace; fill: #b0a080; }
+    .label-rot { font-size: 9px; font-family: 'Consolas', 'Courier New', monospace; fill: #90b0a0; }
+    .label-cam { font-size: 12px; font-weight: bold; fill: #4fc3f7; }
+    .label-axis { font-size: 13px; font-weight: bold; }
+    .label-formula { font-size: 11px; font-family: 'Consolas', 'Courier New', monospace; fill: #e94560; }
+    .detail-title { font-size: 15px; font-weight: bold; fill: #a78bfa; }
+    .detail-subtitle { font-size: 10px; fill: #777; font-style: italic; }
+    .callout-label { font-size: 11px; fill: #d0d0d0; }
+    .callout-fn { font-size: 10px; font-family: 'Consolas', 'Courier New', monospace; fill: #a78bfa; }
+    .callout-note { font-size: 9px; fill: #888; font-style: italic; }
+  </style>
+
+  <defs>
+    <!-- Arrow markers -->
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#e94560"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#4ecca3"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#4fc3f7"/>
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M 0 2 L 8 5 L 0 8 z" fill="#a78bfa"/>
+    </marker>
+
+    <!-- Grid pattern for floor -->
+    <pattern id="floor-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#ffffff" stroke-width="0.4" opacity="0.07"/>
+    </pattern>
+
+    <!-- Glow filter for screens -->
+    <filter id="screen-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Subtle shadow for TV icons -->
+    <filter id="tv-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+
+    <!-- Retro TV icon (front view, ~50x65 with antennas/legs) -->
+    <g id="tv-icon">
+      <!-- Antennas -->
+      <line x1="-4" y1="-23" x2="-16" y2="-38" stroke="#b0b0b0" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="4" y1="-23" x2="16" y2="-38" stroke="#b0b0b0" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="-16" cy="-38" r="2" fill="#c0c0c0"/>
+      <circle cx="16" cy="-38" r="2" fill="#c0c0c0"/>
+      <!-- Body -->
+      <rect x="-24" y="-23" width="48" height="40" rx="5" ry="5"
+            fill="#d4922a" stroke="#b87a1a" stroke-width="1.5"/>
+      <!-- Body highlight -->
+      <rect x="-22" y="-21" width="44" height="18" rx="3" fill="#e8a838" opacity="0.5"/>
+      <!-- Screen -->
+      <rect x="-19" y="-19" width="30" height="28" rx="2"
+            fill="#0a1f14" stroke="#4ecca3" stroke-width="1.2"/>
+      <!-- Screen content glow -->
+      <rect x="-17" y="-17" width="26" height="24" rx="1" fill="#4ecca3" opacity="0.06"/>
+      <!-- Scan lines -->
+      <line x1="-16" y1="-13" x2="8" y2="-13" stroke="#4ecca3" stroke-width="0.4" opacity="0.35"/>
+      <line x1="-16" y1="-7" x2="8" y2="-7" stroke="#4ecca3" stroke-width="0.4" opacity="0.25"/>
+      <line x1="-16" y1="-1" x2="8" y2="-1" stroke="#4ecca3" stroke-width="0.4" opacity="0.35"/>
+      <line x1="-16" y1="5" x2="8" y2="5" stroke="#4ecca3" stroke-width="0.4" opacity="0.25"/>
+      <!-- Knobs -->
+      <circle cx="17" cy="-13" r="3" fill="#e94560" stroke="#c0392b" stroke-width="0.7"/>
+      <circle cx="17" cy="-3" r="3" fill="#e94560" stroke="#c0392b" stroke-width="0.7"/>
+      <circle cx="17" cy="6" r="2.5" fill="#666" stroke="#555" stroke-width="0.7"/>
+      <!-- Knob details -->
+      <line x1="16" y1="-13" x2="18" y2="-13" stroke="#fff" stroke-width="0.5" opacity="0.4"/>
+      <line x1="16" y1="-3" x2="18" y2="-3" stroke="#fff" stroke-width="0.5" opacity="0.4"/>
+      <!-- Speaker grill -->
+      <line x1="-17" y1="13" x2="10" y2="13" stroke="#b87a1a" stroke-width="0.7" opacity="0.6"/>
+      <line x1="-17" y1="15.5" x2="10" y2="15.5" stroke="#b87a1a" stroke-width="0.7" opacity="0.6"/>
+      <!-- Legs -->
+      <line x1="-16" y1="17" x2="-20" y2="28" stroke="#888" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="16" y1="17" x2="20" y2="28" stroke="#888" stroke-width="2.5" stroke-linecap="round"/>
+    </g>
+  </defs>
+
+  <!-- ================================================================ -->
+  <!--                         BACKGROUND                               -->
+  <!-- ================================================================ -->
+  <rect width="1200" height="700" fill="none"/>
+
+  <!-- ================================================================ -->
+  <!--                           TITLE                                  -->
+  <!-- ================================================================ -->
+  <text x="380" y="36" text-anchor="middle" class="title">Retro TV Scene -- Top-Down View</text>
+  <text x="380" y="54" text-anchor="middle" class="subtitle">
+    4 retro TVs in arc arrangement with spatial audio falloff zones
+  </text>
+
+  <!-- ================================================================ -->
+  <!--                    SCENE AREA (Left Side)                        -->
+  <!-- ================================================================ -->
+
+  <!-- Floor / ground plane -->
+  <rect x="70" y="72" width="630" height="520" rx="6"
+        fill="#16213e" stroke="#0f3460" stroke-width="1.5"/>
+  <rect x="70" y="72" width="630" height="520" rx="6" fill="url(#floor-grid)"/>
+
+  <!-- Floor label -->
+  <text x="385" y="582" text-anchor="middle" class="label-sm" font-style="italic">
+    Ground Plane (Y = 0)  --  All TVs elevated at Y = 12
+  </text>
+
+  <!-- ============ CAMERA FIELD OF VIEW CONE ============ -->
+  <!-- Camera at world (0, -20) => SVG (385, 445) -->
+  <!-- FOV cone pointing upward toward TVs -->
+  <path d="M 385,445 L 195,200 L 575,200 Z"
+        fill="#4fc3f7" fill-opacity="0.03"
+        stroke="#4fc3f7" stroke-width="0.6" stroke-dasharray="6,4" stroke-opacity="0.2"/>
+  <!-- Center view direction -->
+  <line x1="385" y1="445" x2="385" y2="220"
+        stroke="#4fc3f7" stroke-width="0.8" stroke-dasharray="3,5" opacity="0.35"/>
+
+  <!-- ============ ARC PATH (dashed, showing arrangement) ============ -->
+  <path d="M 210,305 C 240,415 510,410 560,290"
+        fill="none" stroke="#f0c050" stroke-width="1" stroke-dasharray="5,5" opacity="0.25"/>
+  <text x="385" y="435" text-anchor="middle" font-size="10" fill="#f0c050" opacity="0.5"
+        font-style="italic">arc arrangement</text>
+
+  <!-- ============ AUDIO FALLOFF ZONES ============ -->
+  <!-- TV 0 falloff zone -->
+  <circle cx="225" cy="305" r="78" fill="none"
+          stroke="#e94560" stroke-width="1" stroke-dasharray="6,4" opacity="0.35"/>
+  <circle cx="225" cy="305" r="45" fill="none"
+          stroke="#e94560" stroke-width="0.7" stroke-dasharray="3,3" opacity="0.2"/>
+
+  <!-- TV 1 falloff zone -->
+  <circle cx="305" cy="397" r="78" fill="none"
+          stroke="#e94560" stroke-width="1" stroke-dasharray="6,4" opacity="0.35"/>
+  <circle cx="305" cy="397" r="45" fill="none"
+          stroke="#e94560" stroke-width="0.7" stroke-dasharray="3,3" opacity="0.2"/>
+
+  <!-- TV 2 falloff zone -->
+  <circle cx="465" cy="385" r="78" fill="none"
+          stroke="#e94560" stroke-width="1" stroke-dasharray="6,4" opacity="0.35"/>
+  <circle cx="465" cy="385" r="45" fill="none"
+          stroke="#e94560" stroke-width="0.7" stroke-dasharray="3,3" opacity="0.2"/>
+
+  <!-- TV 3 falloff zone -->
+  <circle cx="545" cy="293" r="78" fill="none"
+          stroke="#e94560" stroke-width="1" stroke-dasharray="6,4" opacity="0.35"/>
+  <circle cx="545" cy="293" r="45" fill="none"
+          stroke="#e94560" stroke-width="0.7" stroke-dasharray="3,3" opacity="0.2"/>
+
+  <!-- Audio falloff formula box -->
+  <rect x="488" y="102" width="195" height="48" rx="4"
+        fill="#1a1a2e" fill-opacity="0.85" stroke="#e94560" stroke-width="0.8" opacity="0.7"/>
+  <text x="586" y="120" text-anchor="middle" class="label-sm" fill="#e94560">Audio Falloff</text>
+  <text x="586" y="138" text-anchor="middle" class="label-formula">volume = 10.0 / distance&#xB2;</text>
+  <!-- Radius legend -->
+  <line x1="495" y1="152" x2="515" y2="152" stroke="#e94560" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>
+  <text x="519" y="156" class="label-sm" fill="#888" font-size="8">inner / outer radius</text>
+
+  <!-- ============ TV ICONS ============ -->
+
+  <!-- TV 0: world (-40, 12, 15) => SVG (225, 305), rotation +26 deg -->
+  <g transform="translate(225, 305) rotate(26)" filter="url(#tv-shadow)">
+    <use href="#tv-icon"/>
+  </g>
+  <text x="225" y="260" text-anchor="middle" class="label-tv">TV 0</text>
+  <text x="225" y="272" text-anchor="middle" class="label-pos">(-40, 12, 15)</text>
+  <text x="225" y="282" text-anchor="middle" class="label-rot">rot: 0.45 rad</text>
+
+  <!-- TV 1: world (-20, 12, -8) => SVG (305, 397), rotation +17 deg -->
+  <g transform="translate(305, 397) rotate(17)" filter="url(#tv-shadow)">
+    <use href="#tv-icon"/>
+  </g>
+  <text x="305" y="443" text-anchor="middle" class="label-tv">TV 1</text>
+  <text x="305" y="455" text-anchor="middle" class="label-pos">(-20, 12, -8)</text>
+  <text x="305" y="465" text-anchor="middle" class="label-rot">rot: 0.3 rad</text>
+
+  <!-- TV 2: world (20, 12, -5) => SVG (465, 385), rotation -17 deg -->
+  <g transform="translate(465, 385) rotate(-17)" filter="url(#tv-shadow)">
+    <use href="#tv-icon"/>
+  </g>
+  <text x="465" y="431" text-anchor="middle" class="label-tv">TV 2</text>
+  <text x="465" y="443" text-anchor="middle" class="label-pos">(20, 12, -5)</text>
+  <text x="465" y="453" text-anchor="middle" class="label-rot">rot: -0.3 rad</text>
+
+  <!-- TV 3: world (40, 12, 18) => SVG (545, 293), rotation -26 deg -->
+  <g transform="translate(545, 293) rotate(-26)" filter="url(#tv-shadow)">
+    <use href="#tv-icon"/>
+  </g>
+  <text x="545" y="248" text-anchor="middle" class="label-tv">TV 3</text>
+  <text x="545" y="260" text-anchor="middle" class="label-pos">(40, 12, 18)</text>
+  <text x="545" y="270" text-anchor="middle" class="label-rot">rot: -0.45 rad</text>
+
+  <!-- ============ CAMERA ICON ============ -->
+  <!-- Camera at world (0, 0, -20) => SVG (385, 445) -->
+  <g transform="translate(385, 445)">
+    <!-- Camera body -->
+    <rect x="-10" y="-7" width="20" height="14" rx="3" fill="#29b6f6" stroke="#0288d1" stroke-width="1.2"/>
+    <!-- Lens / view direction indicator (pointing up) -->
+    <polygon points="0,-15 -7,-7 7,-7" fill="#4fc3f7" stroke="#0288d1" stroke-width="0.8"/>
+    <!-- Lens detail -->
+    <circle cx="0" cy="-1" r="3.5" fill="#1a1a2e" stroke="#4fc3f7" stroke-width="0.8"/>
+    <circle cx="0" cy="-1" r="1.5" fill="#4fc3f7" opacity="0.6"/>
+  </g>
+  <text x="385" y="470" text-anchor="middle" class="label-cam">Camera</text>
+  <text x="385" y="482" text-anchor="middle" class="label-pos" fill="#80c8e8">(0, 0, -20)</text>
+  <text x="385" y="492" text-anchor="middle" class="label-sm" fill="#6ab0d4">looking +Z</text>
+
+  <!-- ============ COORDINATE AXES ============ -->
+  <g transform="translate(125, 555)">
+    <!-- Background -->
+    <rect x="-30" y="-55" width="120" height="65" rx="4"
+          fill="#1a1a2e" fill-opacity="0.7" stroke="#333" stroke-width="0.5"/>
+
+    <!-- X axis (+X = right) -->
+    <line x1="0" y1="0" x2="65" y2="0"
+          stroke="#e94560" stroke-width="2" marker-end="url(#arrow-red)"/>
+    <text x="72" y="4" class="label-axis" fill="#e94560">+X</text>
+    <text x="72" y="15" font-size="8" fill="#e94560" opacity="0.6">(right)</text>
+
+    <!-- Z axis (+Z = forward, mapped to SVG -Y = up) -->
+    <line x1="0" y1="0" x2="0" y2="-40"
+          stroke="#4ecca3" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <text x="-3" y="-44" class="label-axis" fill="#4ecca3" text-anchor="middle">+Z</text>
+    <text x="12" y="-38" font-size="8" fill="#4ecca3" opacity="0.6">(fwd)</text>
+
+    <!-- Origin -->
+    <circle cx="0" cy="0" r="3" fill="#fff"/>
+    <text x="-16" y="12" font-size="8" fill="#888">origin</text>
+  </g>
+
+
+  <!-- ================================================================ -->
+  <!--               DETAIL BOX (Right Side) -- SDF Composition         -->
+  <!-- ================================================================ -->
+
+  <!-- Detail box border -->
+  <rect x="735" y="45" width="448" height="630" rx="8"
+        fill="#12122a" stroke="#533483" stroke-width="1.5"/>
+
+  <!-- Detail box title -->
+  <text x="959" y="78" text-anchor="middle" class="detail-title">SDF Composition Detail</text>
+  <text x="959" y="95" text-anchor="middle" class="detail-subtitle">
+    Signed distance field primitives for one retro TV
+  </text>
+
+  <!-- ============ LARGE DETAIL TV DRAWING ============ -->
+  <g transform="translate(860, 310)">
+
+    <!-- Antennas (2x sdCapsule) -->
+    <line x1="-25" y1="-78" x2="-55" y2="-128" stroke="#b0b0b0" stroke-width="3" stroke-linecap="round"/>
+    <line x1="25" y1="-78" x2="55" y2="-128" stroke="#b0b0b0" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="-55" cy="-128" r="4" fill="#c0c0c0" stroke="#999" stroke-width="1"/>
+    <circle cx="55" cy="-128" r="4" fill="#c0c0c0" stroke="#999" stroke-width="1"/>
+
+    <!-- Legs (4x sdCappedCylinder) -->
+    <rect x="-68" y="78" width="7" height="30" rx="2" fill="#888" stroke="#666" stroke-width="0.8"/>
+    <rect x="-48" y="78" width="7" height="30" rx="2" fill="#888" stroke="#666" stroke-width="0.8"/>
+    <rect x="42" y="78" width="7" height="30" rx="2" fill="#888" stroke="#666" stroke-width="0.8"/>
+    <rect x="62" y="78" width="7" height="30" rx="2" fill="#888" stroke="#666" stroke-width="0.8"/>
+
+    <!-- Body (sdRoundBox) -->
+    <rect x="-75" y="-78" width="150" height="156" rx="12" ry="12"
+          fill="#d4922a" stroke="#b87a1a" stroke-width="2"/>
+    <!-- Body upper highlight -->
+    <rect x="-70" y="-73" width="140" height="55" rx="8"
+          fill="#e8a838" opacity="0.45"/>
+
+    <!-- Bezel area (sdRoundBox - sdBox CSG) -->
+    <!-- Outer bezel -->
+    <rect x="-65" y="-68" width="105" height="120" rx="5"
+          fill="#c4841e" stroke="#a06a10" stroke-width="1"/>
+
+    <!-- Screen (sdBox) -->
+    <rect x="-58" y="-60" width="91" height="105" rx="3"
+          fill="#0a1f14" stroke="#4ecca3" stroke-width="1.5"/>
+    <!-- Screen glow -->
+    <rect x="-54" y="-56" width="83" height="97" rx="2"
+          fill="#4ecca3" opacity="0.06"/>
+    <!-- Scan lines / content -->
+    <line x1="-50" y1="-45" x2="28" y2="-45" stroke="#4ecca3" stroke-width="0.8" opacity="0.3"/>
+    <line x1="-50" y1="-33" x2="28" y2="-33" stroke="#4ecca3" stroke-width="0.8" opacity="0.2"/>
+    <line x1="-50" y1="-21" x2="28" y2="-21" stroke="#4ecca3" stroke-width="0.8" opacity="0.3"/>
+    <line x1="-50" y1="-9" x2="28" y2="-9" stroke="#4ecca3" stroke-width="0.8" opacity="0.2"/>
+    <line x1="-50" y1="3" x2="28" y2="3" stroke="#4ecca3" stroke-width="0.8" opacity="0.3"/>
+    <line x1="-50" y1="15" x2="28" y2="15" stroke="#4ecca3" stroke-width="0.8" opacity="0.2"/>
+    <line x1="-50" y1="27" x2="28" y2="27" stroke="#4ecca3" stroke-width="0.8" opacity="0.3"/>
+    <!-- Screen label -->
+    <text x="-12" y="-2" text-anchor="middle" font-size="9" fill="#4ecca3" opacity="0.6">VIDEO</text>
+
+    <!-- Knobs (3x sdSphere) -->
+    <circle cx="52" cy="-45" r="9" fill="#e94560" stroke="#c0392b" stroke-width="1.2"/>
+    <circle cx="52" cy="-18" r="9" fill="#e94560" stroke="#c0392b" stroke-width="1.2"/>
+    <circle cx="52" cy="8" r="7" fill="#666" stroke="#555" stroke-width="1.2"/>
+    <!-- Knob indicator lines -->
+    <line x1="49" y1="-45" x2="55" y2="-45" stroke="#fff" stroke-width="1" opacity="0.5"/>
+    <line x1="49" y1="-18" x2="55" y2="-18" stroke="#fff" stroke-width="1" opacity="0.5"/>
+    <line x1="50" y1="8" x2="54" y2="8" stroke="#fff" stroke-width="0.8" opacity="0.4"/>
+
+    <!-- Speaker grill -->
+    <line x1="-60" y1="58" x2="30" y2="58" stroke="#a06a10" stroke-width="1.2" opacity="0.6"/>
+    <line x1="-60" y1="62" x2="30" y2="62" stroke="#a06a10" stroke-width="1.2" opacity="0.6"/>
+    <line x1="-60" y1="66" x2="30" y2="66" stroke="#a06a10" stroke-width="1.2" opacity="0.6"/>
+    <line x1="-60" y1="70" x2="30" y2="70" stroke="#a06a10" stroke-width="1.2" opacity="0.6"/>
+
+  </g>
+
+  <!-- ============ CALLOUT LINES AND LABELS ============ -->
+
+  <!-- 1. Antennas -->
+  <circle cx="920" cy="182" r="3" fill="#a78bfa"/>
+  <polyline points="920,182 960,172 990,172"
+            fill="none" stroke="#a78bfa" stroke-width="0.8" marker-end="url(#arrow-purple)"/>
+  <text x="998" y="169" class="callout-label">Antennas</text>
+  <text x="998" y="182" class="callout-fn">2x sdCapsule</text>
+
+  <!-- 2. Body -->
+  <circle cx="935" cy="248" r="3" fill="#a78bfa"/>
+  <polyline points="935,248 968,233 990,233"
+            fill="none" stroke="#a78bfa" stroke-width="0.8" marker-end="url(#arrow-purple)"/>
+  <text x="998" y="230" class="callout-label">Body</text>
+  <text x="998" y="243" class="callout-fn">sdRoundBox</text>
+
+  <!-- 3. Bezel (CSG) -->
+  <circle cx="795" cy="260" r="3" fill="#a78bfa"/>
+  <polyline points="795,260 770,280 755,280"
+            fill="none" stroke="#a78bfa" stroke-width="0.8"/>
+  <text x="753" y="267" class="callout-label" text-anchor="end">Bezel</text>
+  <text x="753" y="280" class="callout-fn" text-anchor="end">sdRoundBox - sdBox</text>
+  <text x="753" y="291" class="callout-note" text-anchor="end">(CSG subtraction)</text>
+
+  <!-- 4. Screen -->
+  <circle cx="795" cy="318" r="3" fill="#4ecca3"/>
+  <polyline points="795,318 770,330 755,330"
+            fill="none" stroke="#4ecca3" stroke-width="0.8"/>
+  <text x="753" y="327" class="callout-label" text-anchor="end" fill="#4ecca3">Screen</text>
+  <text x="753" y="340" class="callout-fn" text-anchor="end" fill="#4ecca3">sdBox</text>
+  <text x="753" y="351" class="callout-note" text-anchor="end">emissive, video texture</text>
+
+  <!-- 5. Knobs -->
+  <circle cx="924" cy="283" r="3" fill="#e94560"/>
+  <polyline points="924,283 960,288 990,288"
+            fill="none" stroke="#e94560" stroke-width="0.8"/>
+  <text x="998" y="285" class="callout-label" fill="#e8a0a0">Knobs</text>
+  <text x="998" y="298" class="callout-fn">3x sdSphere</text>
+
+  <!-- 6. Speaker Grill -->
+  <circle cx="795" cy="380" r="3" fill="#a78bfa"/>
+  <polyline points="795,380 770,392 755,392"
+            fill="none" stroke="#a78bfa" stroke-width="0.8"/>
+  <text x="753" y="388" class="callout-label" text-anchor="end">Speaker Grill</text>
+  <text x="753" y="400" class="callout-note" text-anchor="end">horizontal line pattern</text>
+
+  <!-- 7. Legs -->
+  <circle cx="930" cy="400" r="3" fill="#a78bfa"/>
+  <polyline points="930,400 960,408 990,408"
+            fill="none" stroke="#a78bfa" stroke-width="0.8" marker-end="url(#arrow-purple)"/>
+  <text x="998" y="335" class="callout-label">Legs</text>
+  <text x="998" y="348" class="callout-fn">4x sdCappedCylinder</text>
+
+  <!-- ============ SDF COMPONENT SUMMARY TABLE ============ -->
+  <g transform="translate(760, 445)">
+    <rect x="0" y="0" width="400" height="215" rx="5"
+          fill="#16213e" fill-opacity="0.5" stroke="#333" stroke-width="0.8"/>
+
+    <text x="200" y="22" text-anchor="middle" font-size="12" font-weight="bold" fill="#a78bfa">
+      SDF Primitives Summary
+    </text>
+    <line x1="15" y1="30" x2="385" y2="30" stroke="#333" stroke-width="0.5"/>
+
+    <!-- Table header -->
+    <text x="25" y="48" font-size="10" fill="#888" font-weight="bold">Component</text>
+    <text x="155" y="48" font-size="10" fill="#888" font-weight="bold">SDF Function</text>
+    <text x="310" y="48" font-size="10" fill="#888" font-weight="bold">Count</text>
+    <line x1="15" y1="54" x2="385" y2="54" stroke="#333" stroke-width="0.3"/>
+
+    <!-- Row 1: Body -->
+    <rect x="18" y="58" width="6" height="6" rx="1" fill="#d4922a"/>
+    <text x="30" y="66" font-size="10" fill="#ccc">Body</text>
+    <text x="155" y="66" font-size="10" fill="#a78bfa" font-family="Consolas, monospace">sdRoundBox</text>
+    <text x="325" y="66" font-size="10" fill="#999">1</text>
+
+    <!-- Row 2: Screen -->
+    <rect x="18" y="74" width="6" height="6" rx="1" fill="#4ecca3"/>
+    <text x="30" y="82" font-size="10" fill="#ccc">Screen</text>
+    <text x="155" y="82" font-size="10" fill="#a78bfa" font-family="Consolas, monospace">sdBox</text>
+    <text x="325" y="82" font-size="10" fill="#999">1</text>
+
+    <!-- Row 3: Bezel -->
+    <rect x="18" y="90" width="6" height="6" rx="1" fill="#c4841e"/>
+    <text x="30" y="98" font-size="10" fill="#ccc">Bezel</text>
+    <text x="155" y="98" font-size="10" fill="#a78bfa" font-family="Consolas, monospace">sdRoundBox - sdBox</text>
+    <text x="325" y="98" font-size="10" fill="#999">CSG</text>
+
+    <!-- Row 4: Speaker Grill -->
+    <rect x="18" y="106" width="6" height="6" rx="1" fill="#a06a10"/>
+    <text x="30" y="114" font-size="10" fill="#ccc">Speaker Grill</text>
+    <text x="155" y="114" font-size="10" fill="#a78bfa" font-family="Consolas, monospace">pattern</text>
+    <text x="325" y="114" font-size="10" fill="#999">1</text>
+
+    <!-- Row 5: Knobs -->
+    <rect x="18" y="122" width="6" height="6" rx="1" fill="#e94560"/>
+    <text x="30" y="130" font-size="10" fill="#ccc">Knobs</text>
+    <text x="155" y="130" font-size="10" fill="#a78bfa" font-family="Consolas, monospace">sdSphere</text>
+    <text x="325" y="130" font-size="10" fill="#999">3</text>
+
+    <!-- Row 6: Legs -->
+    <rect x="18" y="138" width="6" height="6" rx="1" fill="#888"/>
+    <text x="30" y="146" font-size="10" fill="#ccc">Legs</text>
+    <text x="155" y="146" font-size="10" fill="#a78bfa" font-family="Consolas, monospace">sdCappedCylinder</text>
+    <text x="325" y="146" font-size="10" fill="#999">4</text>
+
+    <!-- Row 7: Antennas -->
+    <rect x="18" y="154" width="6" height="6" rx="1" fill="#b0b0b0"/>
+    <text x="30" y="162" font-size="10" fill="#ccc">Antennas</text>
+    <text x="155" y="162" font-size="10" fill="#a78bfa" font-family="Consolas, monospace">sdCapsule</text>
+    <text x="325" y="162" font-size="10" fill="#999">2</text>
+
+    <line x1="15" y1="170" x2="385" y2="170" stroke="#333" stroke-width="0.3"/>
+
+    <!-- Total -->
+    <text x="30" y="188" font-size="10" fill="#888" font-style="italic">
+      Total: 12 SDF primitives + 1 CSG operation per TV
+    </text>
+    <text x="30" y="202" font-size="10" fill="#888" font-style="italic">
+      Rendering: raymarched signed distance fields
+    </text>
+  </g>
+
+  <!-- ================================================================ -->
+  <!--                     DIVIDER LINE                                 -->
+  <!-- ================================================================ -->
+  <line x1="720" y1="60" x2="720" y2="670" stroke="#333" stroke-width="1" stroke-dasharray="4,6"/>
+
+</svg>

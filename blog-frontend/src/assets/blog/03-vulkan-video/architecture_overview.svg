@@ -1,0 +1,207 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" font-family="Segoe UI, Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="arrowWhite" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#c0c0c0"/>
+    </marker>
+    <marker id="arrowRight" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ffd166"/>
+    </marker>
+    <filter id="dropShadow" x="-3%" y="-3%" width="106%" height="106%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#16162a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="900" fill="none"/>
+
+  <!-- Title -->
+  <text x="600" y="38" text-anchor="middle" fill="#ffffff" font-size="22" font-weight="700" letter-spacing="1">HLS Player &mdash; System Architecture</text>
+  <line x1="300" y1="50" x2="900" y2="50" stroke="#4361ee" stroke-width="1.5" stroke-opacity="0.5"/>
+
+  <!-- ===== LAYER 1: HLS Sources ===== -->
+  <rect x="430" y="65" width="340" height="52" rx="10" fill="#4361ee" filter="url(#dropShadow)"/>
+  <text x="600" y="88" text-anchor="middle" fill="#ffffff" font-size="15" font-weight="700">HLS Sources</text>
+  <text x="600" y="106" text-anchor="middle" fill="#d0d0ff" font-size="11">sources.txt &mdash; list of M3U8 URLs</text>
+
+  <!-- Arrow L1 -> L2 -->
+  <line x1="600" y1="117" x2="600" y2="140" stroke="#c0c0c0" stroke-width="2" marker-end="url(#arrowWhite)"/>
+
+  <!-- ===== LAYER 2: Scene Manager ===== -->
+  <rect x="170" y="145" width="860" height="105" rx="12" fill="none" stroke="#4895ef" stroke-width="1.5" stroke-dasharray="6 3"/>
+  <text x="190" y="168" fill="#4895ef" font-size="13" font-weight="600">Scene Manager</text>
+  <text x="860" y="168" fill="#6c757d" font-size="11" text-anchor="end">AVD_SceneHLSPlayer</text>
+
+  <!-- URL Pool -->
+  <rect x="205" y="180" width="200" height="50" rx="8" fill="#4361ee" filter="url(#dropShadow)"/>
+  <text x="305" y="201" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="600">URL Pool</text>
+  <text x="305" y="218" text-anchor="middle" fill="#b0c4ff" font-size="10">Round-robin URL selection</text>
+
+  <!-- Media Cache -->
+  <rect x="435" y="180" width="200" height="50" rx="8" fill="#4361ee" filter="url(#dropShadow)"/>
+  <text x="535" y="201" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="600">Media Cache</text>
+  <text x="535" y="218" text-anchor="middle" fill="#b0c4ff" font-size="10">Segment deduplication</text>
+
+  <!-- Worker Pool (highlighted) -->
+  <rect x="665" y="176" width="230" height="58" rx="8" fill="#ffd166" filter="url(#dropShadow)"/>
+  <rect x="665" y="176" width="230" height="58" rx="8" fill="none" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="780" y="200" text-anchor="middle" fill="#1a1a2e" font-size="14" font-weight="700">Worker Pool</text>
+  <text x="780" y="218" text-anchor="middle" fill="#3d3500" font-size="10" font-weight="600">picoThread-based pipeline</text>
+
+  <!-- Arrow L2 -> L3 -->
+  <line x1="600" y1="250" x2="600" y2="278" stroke="#c0c0c0" stroke-width="2" marker-end="url(#arrowWhite)"/>
+
+  <!-- ===== LAYER 3: Worker Pipeline ===== -->
+  <rect x="50" y="283" width="1100" height="145" rx="12" fill="none" stroke="#2ec4b6" stroke-width="1.5" stroke-dasharray="6 3"/>
+  <text x="70" y="306" fill="#2ec4b6" font-size="13" font-weight="600">Worker Pipeline</text>
+
+  <!-- Stage 1: Source Download -->
+  <rect x="80" y="318" width="280" height="90" rx="10" fill="#4361ee" filter="url(#dropShadow)"/>
+  <text x="220" y="344" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="700">Stage 1: Source Download</text>
+  <line x1="120" y1="354" x2="320" y2="354" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.3"/>
+  <text x="220" y="372" text-anchor="middle" fill="#b0c4ff" font-size="11">M3U8 playlist parsing</text>
+  <text x="220" y="392" text-anchor="middle" fill="#8ea8e0" font-size="10">2 worker threads</text>
+
+  <!-- Arrow Stage 1 -> Stage 2 -->
+  <line x1="360" y1="363" x2="415" y2="363" stroke="#ffd166" stroke-width="2" marker-end="url(#arrowRight)"/>
+  <text x="387" y="356" text-anchor="middle" fill="#ffd166" font-size="8" font-weight="600">picoThread</text>
+  <text x="387" y="380" text-anchor="middle" fill="#ffd166" font-size="8" font-weight="600">Channel</text>
+
+  <!-- Stage 2: Media Download -->
+  <rect x="420" y="318" width="280" height="90" rx="10" fill="#4361ee" filter="url(#dropShadow)"/>
+  <text x="560" y="344" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="700">Stage 2: Media Download</text>
+  <line x1="460" y1="354" x2="660" y2="354" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.3"/>
+  <text x="560" y="372" text-anchor="middle" fill="#b0c4ff" font-size="11">MPEG-TS segment download</text>
+  <text x="560" y="392" text-anchor="middle" fill="#8ea8e0" font-size="10">8 worker threads</text>
+
+  <!-- Arrow Stage 2 -> Stage 3 -->
+  <line x1="700" y1="363" x2="755" y2="363" stroke="#ffd166" stroke-width="2" marker-end="url(#arrowRight)"/>
+  <text x="727" y="356" text-anchor="middle" fill="#ffd166" font-size="8" font-weight="600">picoThread</text>
+  <text x="727" y="380" text-anchor="middle" fill="#ffd166" font-size="8" font-weight="600">Channel</text>
+
+  <!-- Stage 3: Media Demux -->
+  <rect x="760" y="318" width="280" height="90" rx="10" fill="#2ec4b6" filter="url(#dropShadow)"/>
+  <text x="900" y="344" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="700">Stage 3: Media Demux</text>
+  <line x1="800" y1="354" x2="1000" y2="354" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.3"/>
+  <text x="900" y="372" text-anchor="middle" fill="#d0fff8" font-size="11">MPEG-TS demuxing</text>
+  <text x="900" y="392" text-anchor="middle" fill="#92ddd4" font-size="10">2 worker threads</text>
+
+  <!-- Arrow L3 -> L4 -->
+  <line x1="600" y1="428" x2="600" y2="458" stroke="#c0c0c0" stroke-width="2" marker-end="url(#arrowWhite)"/>
+
+  <!-- ===== LAYER 4: Per-Source Context ===== -->
+  <rect x="80" y="463" width="1040" height="145" rx="12" fill="none" stroke="#7b2cbf" stroke-width="1.5" stroke-dasharray="6 3"/>
+  <text x="100" y="486" fill="#7b2cbf" font-size="13" font-weight="600">Per-Source Context</text>
+  <text x="960" y="486" fill="#6c757d" font-size="11" text-anchor="end">AVD_SceneHLSPlayerContext x4</text>
+
+  <!-- Segment Store -->
+  <rect x="110" y="498" width="220" height="90" rx="10" fill="#2ec4b6" filter="url(#dropShadow)"/>
+  <text x="220" y="530" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="700">Segment Store</text>
+  <text x="220" y="552" text-anchor="middle" fill="#d0fff8" font-size="11">Buffered TS segments</text>
+  <text x="220" y="570" text-anchor="middle" fill="#92ddd4" font-size="10">Ring-buffer management</text>
+
+  <!-- HLS Stream -->
+  <rect x="360" y="498" width="220" height="90" rx="10" fill="#4361ee" filter="url(#dropShadow)"/>
+  <text x="470" y="530" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="700">HLS Stream</text>
+  <text x="470" y="552" text-anchor="middle" fill="#b0c4ff" font-size="11">Appendable streaming buffer</text>
+  <text x="470" y="570" text-anchor="middle" fill="#8ea8e0" font-size="10">Playlist state machine</text>
+
+  <!-- Vulkan Video Decoder -->
+  <rect x="610" y="498" width="220" height="90" rx="10" fill="#7b2cbf" filter="url(#dropShadow)"/>
+  <text x="720" y="524" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">Vulkan Video</text>
+  <text x="720" y="542" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">Decoder</text>
+  <text x="720" y="570" text-anchor="middle" fill="#d4b0f0" font-size="10">H.264 hardware decode</text>
+
+  <!-- Audio Player -->
+  <rect x="860" y="498" width="220" height="90" rx="10" fill="#ff6b35" filter="url(#dropShadow)"/>
+  <text x="970" y="530" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="700">Audio Player</text>
+  <text x="970" y="552" text-anchor="middle" fill="#ffe0d0" font-size="11">AAC / MP3 playback</text>
+  <text x="970" y="570" text-anchor="middle" fill="#ffc4a0" font-size="10">PortAudio backend</text>
+
+  <!-- Horizontal flow arrows within L4 -->
+  <line x1="330" y1="543" x2="355" y2="543" stroke="#c0c0c0" stroke-width="1.5" marker-end="url(#arrowWhite)"/>
+  <line x1="580" y1="543" x2="605" y2="543" stroke="#c0c0c0" stroke-width="1.5" marker-end="url(#arrowWhite)"/>
+  <line x1="830" y1="543" x2="855" y2="543" stroke="#c0c0c0" stroke-width="1.5" marker-end="url(#arrowWhite)"/>
+
+  <!-- Arrow L4 -> L5 -->
+  <line x1="600" y1="608" x2="600" y2="638" stroke="#c0c0c0" stroke-width="2" marker-end="url(#arrowWhite)"/>
+
+  <!-- ===== LAYER 5: Rendering ===== -->
+  <rect x="130" y="643" width="940" height="145" rx="12" fill="none" stroke="#9b5de5" stroke-width="1.5" stroke-dasharray="6 3"/>
+  <text x="150" y="666" fill="#9b5de5" font-size="13" font-weight="600">Rendering Pipeline</text>
+  <text x="920" y="666" fill="#6c757d" font-size="11" text-anchor="end">Vulkan GPU</text>
+
+  <!-- Ray Marching Shader -->
+  <rect x="155" y="678" width="205" height="90" rx="10" fill="#7b2cbf" filter="url(#dropShadow)"/>
+  <text x="257" y="710" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">Ray Marching</text>
+  <text x="257" y="728" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">Shader</text>
+  <text x="257" y="752" text-anchor="middle" fill="#d4b0f0" font-size="10">Signed distance fields</text>
+
+  <!-- 4 Retro TV Sets -->
+  <rect x="390" y="678" width="205" height="90" rx="10" fill="#7b2cbf" filter="url(#dropShadow)"/>
+  <text x="492" y="710" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">4 Retro TV Sets</text>
+  <text x="492" y="732" text-anchor="middle" fill="#d4b0f0" font-size="11">Quad viewport layout</text>
+  <text x="492" y="752" text-anchor="middle" fill="#c090e0" font-size="10">CRT screen effect</text>
+
+  <!-- YCbCr -> RGB -->
+  <rect x="625" y="678" width="205" height="90" rx="10" fill="#7b2cbf" filter="url(#dropShadow)"/>
+  <text x="727" y="710" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="700">YCbCr to RGB</text>
+  <text x="727" y="732" text-anchor="middle" fill="#d4b0f0" font-size="11">Color space conversion</text>
+  <text x="727" y="752" text-anchor="middle" fill="#c090e0" font-size="10">Fragment shader</text>
+
+  <!-- ACES Tonemapping -->
+  <rect x="860" y="678" width="185" height="90" rx="10" fill="#7b2cbf" filter="url(#dropShadow)"/>
+  <text x="952" y="704" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">ACES</text>
+  <text x="952" y="722" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">Tonemapping</text>
+  <text x="952" y="752" text-anchor="middle" fill="#d4b0f0" font-size="10">HDR to SDR mapping</text>
+
+  <!-- Horizontal flow arrows within L5 -->
+  <line x1="360" y1="723" x2="385" y2="723" stroke="#c0c0c0" stroke-width="1.5" marker-end="url(#arrowWhite)"/>
+  <line x1="595" y1="723" x2="620" y2="723" stroke="#c0c0c0" stroke-width="1.5" marker-end="url(#arrowWhite)"/>
+  <line x1="830" y1="723" x2="855" y2="723" stroke="#c0c0c0" stroke-width="1.5" marker-end="url(#arrowWhite)"/>
+
+  <!-- ===== LEGEND ===== -->
+  <rect x="80" y="810" width="1040" height="55" rx="8" fill="#12121f" stroke="#333355" stroke-width="1"/>
+  <text x="100" y="833" fill="#888888" font-size="11" font-weight="600">LEGEND:</text>
+
+  <rect x="180" y="822" width="14" height="14" rx="3" fill="#4361ee"/>
+  <text x="200" y="834" fill="#c0c0c0" font-size="11">Network / Download</text>
+
+  <rect x="340" y="822" width="14" height="14" rx="3" fill="#2ec4b6"/>
+  <text x="360" y="834" fill="#c0c0c0" font-size="11">Parsing / Demux</text>
+
+  <rect x="490" y="822" width="14" height="14" rx="3" fill="#7b2cbf"/>
+  <text x="510" y="834" fill="#c0c0c0" font-size="11">Vulkan / GPU</text>
+
+  <rect x="620" y="822" width="14" height="14" rx="3" fill="#ff6b35"/>
+  <text x="640" y="834" fill="#c0c0c0" font-size="11">Audio</text>
+
+  <rect x="720" y="822" width="14" height="14" rx="3" fill="#ffd166"/>
+  <text x="740" y="834" fill="#c0c0c0" font-size="11">Key Component</text>
+
+  <line x1="860" y1="829" x2="895" y2="829" stroke="#ffd166" stroke-width="2" marker-end="url(#arrowRight)"/>
+  <text x="905" y="834" fill="#c0c0c0" font-size="11">picoThreadChannel</text>
+
+  <line x1="1020" y1="829" x2="1055" y2="829" stroke="#c0c0c0" stroke-width="2" marker-end="url(#arrowWhite)"/>
+  <text x="1065" y="834" fill="#c0c0c0" font-size="11">Data flow</text>
+
+  <!-- Subtle grid pattern for background texture -->
+  <g opacity="0.03">
+    <line x1="0" y1="100" x2="1200" y2="100" stroke="#ffffff" stroke-width="0.5"/>
+    <line x1="0" y1="200" x2="1200" y2="200" stroke="#ffffff" stroke-width="0.5"/>
+    <line x1="0" y1="300" x2="1200" y2="300" stroke="#ffffff" stroke-width="0.5"/>
+    <line x1="0" y1="400" x2="1200" y2="400" stroke="#ffffff" stroke-width="0.5"/>
+    <line x1="0" y1="500" x2="1200" y2="500" stroke="#ffffff" stroke-width="0.5"/>
+    <line x1="0" y1="600" x2="1200" y2="600" stroke="#ffffff" stroke-width="0.5"/>
+    <line x1="0" y1="700" x2="1200" y2="700" stroke="#ffffff" stroke-width="0.5"/>
+    <line x1="0" y1="800" x2="1200" y2="800" stroke="#ffffff" stroke-width="0.5"/>
+    <line x1="200" y1="0" x2="200" y2="900" stroke="#ffffff" stroke-width="0.5"/>
+    <line x1="400" y1="0" x2="400" y2="900" stroke="#ffffff" stroke-width="0.5"/>
+    <line x1="600" y1="0" x2="600" y2="900" stroke="#ffffff" stroke-width="0.5"/>
+    <line x1="800" y1="0" x2="800" y2="900" stroke="#ffffff" stroke-width="0.5"/>
+    <line x1="1000" y1="0" x2="1000" y2="900" stroke="#ffffff" stroke-width="0.5"/>
+  </g>
+</svg>
