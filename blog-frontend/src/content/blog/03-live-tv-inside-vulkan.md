@@ -2227,28 +2227,3 @@ The development of this project was informed by numerous resources. Here is a co
 A more detailed list of refereces can be found [here](https://github.com/Jaysmito101/AdvancedVulkanDemos/blob/main/resources/video.md)
 
 ---
-
-
-## So... was it worth it?
-
-Honestly? Yeah. What started as "how does TV actually work?" turned into one of the biggest rabbit holes I've gone down. Network protocols, container formats, video compression, hardware acceleration, color science, audio engineering, multithreaded pipelines, procedural 3D modeling — I touched all of it. Without FFmpeg. Without libav. Without GStreamer. Just me, the specs, and a lot of stubbornness.
-
-The pico libraries (picoM3U8, picoMpegTS, picoH264, picoAudio) are all standalone now and part of libpico if anyone wants to use them. The Vulkan Video infrastructure in AVD is solid enough for future video work too.
-
-Is it a production-quality media player? No. It handles only H.264 (not H.265 or AV1), only 4:2:0 chroma (not 4:2:2 or 4:4:4), only media playlists (not master playlists with adaptive bitrate), and its synchronization strategy is designed for live streams rather than video-on-demand. But it works, reliably, with real internet live streams, in real-time, rendered on retro TV sets in a fully ray-marched 3D scene.
-
-And sometimes, building something that works is reason enough to build it.
-
----
-
-## Demo
-
-Here's the HLS player in action, rendering live video on retro television sets in a ray-marched Vulkan scene:
-
-<iframe width="100%" height="600" src="https://www.youtube.com/embed/nnYdYYJBc6s" title="Live HLS Video Player in Vulkan" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-
----
-
-*All source code for this project is available on GitHub:*
-- *[Advanced Vulkan Demos](https://github.com/Jaysmito101/AdvancedVulkanDemos)*
-- *[libpico](https://github.com/Jaysmito101/libpico)*
