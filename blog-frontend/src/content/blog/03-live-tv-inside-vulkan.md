@@ -1710,25 +1710,7 @@ The parameter `k` controls the shadow softness lower values give harder shadows,
 
 ### Lighting Model
 
-The shade function implements a multi-light setup with physically motivated components:
-
-1. **Sun Light**: A distant directional light providing the primary illumination.
-2. **Sky Light**: A hemispherical ambient light from above, providing soft fill.
-3. **Bounce Light**: An ambient contribution from below, simulating indirect light bouncing off the floor.
-4. **Fill Light**: An additional directional light from a different angle to reduce harsh shadows.
-5. **Rim Light**: A view-dependent highlight at object edges, adding visual separation.
-
-Each material is defined by a base color, specular intensity, and specular power:
-
-- Material 1 (floor): Dark metallic with a grid pattern overlay.
-- Material 3 (TV body): Warm brown wood with procedural grain.
-- Material 4 (legs): Darker brown wood.
-- Material 5 (bezel, controls): Very dark plastic.
-- Material 6 (speaker): Near-black fabric.
-- Material 7 (walls/background): Gradient dark blue.
-- Material 8 (antenna base): Dark brown.
-- Material 9 (knobs, antenna tips): Bright brass with high specularity.
-- Materials 10-13 (screens): Emissive materials showing video content.
+For materials, each one gets a base color, specular intensity, and specular power. The floor is dark metallic with a grid overlay, the TV body is warm brown wood with procedural grain, bezel and controls are very dark plastic, speakers are near-black fabric, antenna knobs are bright brass with high specularity, and the screens (materials 10-13) are emissive thats where the video content goes.
 
 ---
 
