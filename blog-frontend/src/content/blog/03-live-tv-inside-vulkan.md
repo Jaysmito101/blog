@@ -961,12 +961,12 @@ If coincide mode is supported, the DPB image also gets `VK_IMAGE_USAGE_VIDEO_DEC
 
 ### DPB Coincide vs. Distinct Mode
 
-Vulkan Video defines two modes for how the DPB interacts with the decode output:
+Quick tangent on this because it affects the decode pipeline:
 
-- **Coincide mode**: The decode output goes directly into a DPB slot. The same image serves as both DPB reference and output. This is more memory-efficient.
-- **Distinct mode**: The decode output goes to a separate image, and the DPB references are separate. This provides more flexibility but uses more memory.
+- **Coincide mode**: The decoder writes directly into a DPB slot. Same image layer serves as both the reference frame and the decode output. More memory-efficient, and you copy directly from the DPB layer to your output frame.
+- **Distinct mode**: The decoder writes to a separate image (the "decoded output image"), and the DPB references stay in the DPB image. You copy from the decoded output image to your output frame instead.
 
-The implementation checks the device capabilities and chooses accordingly:
+We detect which one the hardware supports from the capability flags:
 
 ```c
 dpb->decodeOutputCoincideSupported = (capabilities.flags &
