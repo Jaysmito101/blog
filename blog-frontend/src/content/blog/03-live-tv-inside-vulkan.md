@@ -594,22 +594,6 @@ Now unlike the other pico media libraries, picoAudio does NOT implement codec al
 
 On Windows, picoAudio uses **Media Foundation** via the `IMFSourceReader` COM interface. On macOS, it uses **AudioToolbox** via the `ExtAudioFile` API. This gives us high quality, nicely optimized audio decoding on those the platforms, as far as linux is concerned I did consider using something like libfaad2 but I did not have a system at hand to test it out so gave up on the idea for now.
 
-### The picoAudio API
-
-The library has a pretty straightforward API for decoding audio:
-
-```c
-picoAudioDecoder decoder = picoAudioDecoderCreate();
-
-picoAudioDecoderConfigureSourceReader(decoder, ...);
-picoAudioDecoderOpen(decoder, filePath);
-
-// Read decoded PCM samples
-picoAudioDecoderReadPCM(decoder, buffer, bufferSize, &samplesRead);
-
-picoAudioDecoderDestroy(decoder);
-```
-
 The decoder can handle various output formats (16-bit integer, 32-bit float) and works with both file-based and buffer-based inputs. For the HLS player, we use buffer-based input since the AAC data comes from MPEG-TS demuxing rather than from files on disk.
 
 
