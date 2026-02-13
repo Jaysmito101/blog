@@ -1,5 +1,3 @@
 # My Personal Blog
 
-This is the repository for the code of my person blog histed at https://blog.jaysmito.dev
-
-:)
+This is the repository for the code of my personal blog hosted at https://blog.jaysmito.dev
