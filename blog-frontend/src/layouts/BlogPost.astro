@@ -154,7 +154,7 @@ const { title, description, pubDate, updatedDate, heroImage, headings } = Astro.
                 <ul>
                     {headings.map((heading: any) => (
                         <li class={`toc-depth-${heading.depth}`}>
-                            <a href={`#${heading.slug}`}>{heading.text}</a>
+                            <a href={`#${heading.slug}`} data-umami-event="toc-click" data-umami-event-heading={heading.text}>{heading.text}</a>
                         </li>
                     ))}
                 </ul>
@@ -162,5 +162,54 @@ const { title, description, pubDate, updatedDate, heroImage, headings } = Astro.
         )}
       </article>
     </main>
+
+    <script is:inline>
+      // Scroll depth tracking
+      (function() {
+        const milestones = [25, 50, 75, 100];
+        const fired = {};
+        const title = document.querySelector('.title h1')?.textContent || document.title;
+
+        function getScrollPercent() {
+          const h = document.documentElement;
+          const b = document.body;
+          const st = h.scrollTop || b.scrollTop;
+          const sh = h.scrollHeight || b.scrollHeight;
+          return Math.round((st / (sh - h.clientHeight)) * 100);
+        }
+
+        window.addEventListener('scroll', function() {
+          const pct = getScrollPercent();
+          milestones.forEach(function(m) {
+            if (pct >= m && !fired[m]) {
+              fired[m] = true;
+              if (typeof umami !== 'undefined') {
+                umami.track('scroll-depth', { depth: m + '%', title: title });
+              }
+            }
+          });
+        }, { passive: true });
+      })();
+
+      // External link click tracking
+      (function() {
+        const article = document.querySelector('.prose');
+        if (!article) return;
+        const title = document.querySelector('.title h1')?.textContent || document.title;
+
+        article.addEventListener('click', function(e) {
+          const link = e.target.closest('a[href]');
+          if (!link) return;
+          try {
+            const url = new URL(link.href);
+            if (url.hostname !== window.location.hostname) {
+              if (typeof umami !== 'undefined') {
+                umami.track('external-link-click', { url: link.href, article: title });
+              }
+            }
+          } catch(err) {}
+        });
+      })();
+    </script>
   </body>
 </html>

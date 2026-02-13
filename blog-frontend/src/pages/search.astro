@@ -109,6 +109,8 @@ const postsData = JSON.stringify(posts.map(post => ({
                     const a = document.createElement('a');
                     a.href = `/blog/${post.id}/`;
                     a.textContent = post.title;
+                    a.setAttribute('data-umami-event', 'search-result-click');
+                    a.setAttribute('data-umami-event-title', post.title);
                     
                     const date = document.createElement('div');
                     date.className = 'search-result-date';
@@ -141,6 +143,14 @@ const postsData = JSON.stringify(posts.map(post => ({
                     post.description.toLowerCase().includes(term)
                 );
                 renderResults(filtered);
+
+                // Track search query with debounce
+                clearTimeout(window._searchTrackTimeout);
+                window._searchTrackTimeout = setTimeout(() => {
+                    if (typeof umami !== 'undefined') {
+                        umami.track('search-query', { query: term, results: filtered.length });
+                    }
+                }, 800);
             });
         </script>
 	</body>
