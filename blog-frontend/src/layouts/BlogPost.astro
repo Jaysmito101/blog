@@ -210,6 +210,83 @@ const { title, description, pubDate, updatedDate, heroImage, headings } = Astro.
           } catch(err) {}
         });
       })();
+
+      // Time spent on page tracking
+      (function() {
+        var title = document.querySelector('.title h1')?.textContent || document.title;
+        var startTime = Date.now();
+        var elapsed = 0;
+        var hidden = false;
+        var timeMilestones = [30, 60, 180, 300, 600]; // seconds
+        var firedTime = {};
+
+        // Pause timer when tab is hidden
+        document.addEventListener('visibilitychange', function() {
+          if (document.hidden) {
+            elapsed += Date.now() - startTime;
+            hidden = true;
+          } else {
+            startTime = Date.now();
+            hidden = false;
+          }
+        });
+
+        // Check milestones every 5 seconds
+        setInterval(function() {
+          var totalSec = Math.floor((elapsed + (hidden ? 0 : Date.now() - startTime)) / 1000);
+          timeMilestones.forEach(function(m) {
+            if (totalSec >= m && !firedTime[m]) {
+              firedTime[m] = true;
+              if (typeof umami !== 'undefined') {
+                var label = m < 60 ? m + 's' : Math.floor(m / 60) + 'm';
+                umami.track('time-on-post', { milestone: label, title: title });
+              }
+            }
+          });
+        }, 5000);
+
+        // Send final time on page leave
+        function sendFinalTime() {
+          var totalSec = Math.floor((elapsed + (hidden ? 0 : Date.now() - startTime)) / 1000);
+          if (totalSec > 5 && typeof umami !== 'undefined') {
+            umami.track('time-on-post-exit', { seconds: totalSec, title: title });
+          }
+        }
+        window.addEventListener('beforeunload', sendFinalTime);
+        document.addEventListener('visibilitychange', function() {
+          if (document.hidden) sendFinalTime();
+        });
+      })();
+
+      // Sections read tracking (IntersectionObserver)
+      (function() {
+        var article = document.querySelector('.prose');
+        if (!article) return;
+        var title = document.querySelector('.title h1')?.textContent || document.title;
+        var headings = article.querySelectorAll('h1, h2, h3, h4, h5, h6');
+        if (!headings.length) return;
+
+        var seen = {};
+
+        var observer = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (!entry.isIntersecting) return;
+            var id = entry.target.id || entry.target.textContent;
+            if (seen[id]) return;
+            seen[id] = true;
+
+            if (typeof umami !== 'undefined') {
+              umami.track('section-read', {
+                section: entry.target.textContent.trim(),
+                tag: entry.target.tagName.toLowerCase(),
+                article: title
+              });
+            }
+          });
+        }, { rootMargin: '0px 0px -20% 0px', threshold: 0.5 });
+
+        headings.forEach(function(h) { observer.observe(h); });
+      })();
     </script>
   </body>
 </html>
