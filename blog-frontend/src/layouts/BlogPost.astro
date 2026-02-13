@@ -258,7 +258,7 @@ const { title, description, pubDate, updatedDate, heroImage, headings } = Astro.
         });
       })();
 
-      // Sections read tracking (IntersectionObserver)
+      // Sections read tracking (batched + debounced)
       (function() {
         var article = document.querySelector('.prose');
         if (!article) return;
@@ -267,6 +267,20 @@ const { title, description, pubDate, updatedDate, heroImage, headings } = Astro.
         if (!headings.length) return;
 
         var seen = {};
+        var pending = [];
+        var flushTimer = null;
+
+        function flush() {
+          if (!pending.length) return;
+          if (typeof umami !== 'undefined') {
+            umami.track('sections-read', {
+              sections: pending.map(function(s) { return s.section; }).join(' | '),
+              count: pending.length,
+              article: title
+            });
+          }
+          pending = [];
+        }
 
         var observer = new IntersectionObserver(function(entries) {
           entries.forEach(function(entry) {
@@ -274,18 +288,20 @@ const { title, description, pubDate, updatedDate, heroImage, headings } = Astro.
             var id = entry.target.id || entry.target.textContent;
             if (seen[id]) return;
             seen[id] = true;
+            pending.push({ section: entry.target.textContent.trim(), tag: entry.target.tagName.toLowerCase() });
 
-            if (typeof umami !== 'undefined') {
-              umami.track('section-read', {
-                section: entry.target.textContent.trim(),
-                tag: entry.target.tagName.toLowerCase(),
-                article: title
-              });
-            }
+            clearTimeout(flushTimer);
+            flushTimer = setTimeout(flush, 2000);
           });
         }, { rootMargin: '0px 0px -20% 0px', threshold: 0.5 });
 
         headings.forEach(function(h) { observer.observe(h); });
+
+        // Flush remaining on page leave
+        window.addEventListener('beforeunload', flush);
+        document.addEventListener('visibilitychange', function() {
+          if (document.hidden) flush();
+        });
       })();
     </script>
   </body>
