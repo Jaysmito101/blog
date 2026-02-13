@@ -62,7 +62,7 @@ const posts = (await getCollection('blog')).sort(
           {
             posts.map((post) => (
               <li>
-                <a href={`/blog/${post.id}/`}>
+                <a href={`/blog/${post.id}/`} data-umami-event="blog-list-post-click" data-umami-event-title={post.data.title}>
                   <span class="date">
                     <FormattedDate date={post.data.pubDate} />
                   </span>

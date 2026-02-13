@@ -154,7 +154,7 @@ const { title, description, pubDate, updatedDate, heroImage, headings } = Astro.
                 <ul>
                     {headings.map((heading: any) => (
                         <li class={`toc-depth-${heading.depth}`}>
-                            <a href={`#${heading.slug}`}>{heading.text}</a>
+                            <a href={`#${heading.slug}`} data-umami-event="toc-click" data-umami-event-heading={heading.text}>{heading.text}</a>
                         </li>
                     ))}
                 </ul>
@@ -162,5 +162,147 @@ const { title, description, pubDate, updatedDate, heroImage, headings } = Astro.
         )}
       </article>
     </main>
+
+    <script is:inline>
+      // Scroll depth tracking
+      (function() {
+        const milestones = [25, 50, 75, 100];
+        const fired = {};
+        const title = document.querySelector('.title h1')?.textContent || document.title;
+
+        function getScrollPercent() {
+          const h = document.documentElement;
+          const b = document.body;
+          const st = h.scrollTop || b.scrollTop;
+          const sh = h.scrollHeight || b.scrollHeight;
+          return Math.round((st / (sh - h.clientHeight)) * 100);
+        }
+
+        window.addEventListener('scroll', function() {
+          const pct = getScrollPercent();
+          milestones.forEach(function(m) {
+            if (pct >= m && !fired[m]) {
+              fired[m] = true;
+              if (typeof umami !== 'undefined') {
+                umami.track('scroll-depth', { depth: m + '%', title: title });
+              }
+            }
+          });
+        }, { passive: true });
+      })();
+
+      // External link click tracking
+      (function() {
+        const article = document.querySelector('.prose');
+        if (!article) return;
+        const title = document.querySelector('.title h1')?.textContent || document.title;
+
+        article.addEventListener('click', function(e) {
+          const link = e.target.closest('a[href]');
+          if (!link) return;
+          try {
+            const url = new URL(link.href);
+            if (url.hostname !== window.location.hostname) {
+              if (typeof umami !== 'undefined') {
+                umami.track('external-link-click', { url: link.href, article: title });
+              }
+            }
+          } catch(err) {}
+        });
+      })();
+
+      // Time spent on page tracking
+      (function() {
+        var title = document.querySelector('.title h1')?.textContent || document.title;
+        var startTime = Date.now();
+        var elapsed = 0;
+        var hidden = false;
+        var timeMilestones = [30, 60, 180, 300, 600]; // seconds
+        var firedTime = {};
+
+        // Pause timer when tab is hidden
+        document.addEventListener('visibilitychange', function() {
+          if (document.hidden) {
+            elapsed += Date.now() - startTime;
+            hidden = true;
+          } else {
+            startTime = Date.now();
+            hidden = false;
+          }
+        });
+
+        // Check milestones every 5 seconds
+        setInterval(function() {
+          var totalSec = Math.floor((elapsed + (hidden ? 0 : Date.now() - startTime)) / 1000);
+          timeMilestones.forEach(function(m) {
+            if (totalSec >= m && !firedTime[m]) {
+              firedTime[m] = true;
+              if (typeof umami !== 'undefined') {
+                var label = m < 60 ? m + 's' : Math.floor(m / 60) + 'm';
+                umami.track('time-on-post', { milestone: label, title: title });
+              }
+            }
+          });
+        }, 5000);
+
+        // Send final time on page leave
+        function sendFinalTime() {
+          var totalSec = Math.floor((elapsed + (hidden ? 0 : Date.now() - startTime)) / 1000);
+          if (totalSec > 5 && typeof umami !== 'undefined') {
+            umami.track('time-on-post-exit', { seconds: totalSec, title: title });
+          }
+        }
+        window.addEventListener('beforeunload', sendFinalTime);
+        document.addEventListener('visibilitychange', function() {
+          if (document.hidden) sendFinalTime();
+        });
+      })();
+
+      // Sections read tracking (batched + debounced)
+      (function() {
+        var article = document.querySelector('.prose');
+        if (!article) return;
+        var title = document.querySelector('.title h1')?.textContent || document.title;
+        var headings = article.querySelectorAll('h1, h2, h3, h4, h5, h6');
+        if (!headings.length) return;
+
+        var seen = {};
+        var pending = [];
+        var flushTimer = null;
+
+        function flush() {
+          if (!pending.length) return;
+          if (typeof umami !== 'undefined') {
+            umami.track('sections-read', {
+              sections: pending.map(function(s) { return s.section; }).join(' | '),
+              count: pending.length,
+              article: title
+            });
+          }
+          pending = [];
+        }
+
+        var observer = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (!entry.isIntersecting) return;
+            var id = entry.target.id || entry.target.textContent;
+            if (seen[id]) return;
+            seen[id] = true;
+            pending.push({ section: entry.target.textContent.trim(), tag: entry.target.tagName.toLowerCase() });
+
+            clearTimeout(flushTimer);
+            flushTimer = setTimeout(flush, 2000);
+          });
+        }, { rootMargin: '0px 0px -20% 0px', threshold: 0.5 });
+
+        headings.forEach(function(h) { observer.observe(h); });
+
+        // Flush remaining on page leave
+        window.addEventListener('beforeunload', flush);
+        document.addEventListener('visibilitychange', function() {
+          if (document.hidden) flush();
+        });
+      })();
+    </script>
   </body>
 </html>

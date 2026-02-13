@@ -64,9 +64,9 @@ const posts = (await getCollection('blog')).sort(
           optimizations, color science and related topics.
         </p>
         <p>
-          If you like this blog, you should follow it via <a href="/rss.xml"
+          If you like this blog, you should follow it via <a href="/rss.xml" data-umami-event="home-rss"
             >RSS</a
-          > and read <a href="/blog">older posts</a>. Here are the recent posts.
+          > and read <a href="/blog" data-umami-event="home-older-posts">older posts</a>. Here are the recent posts.
         </p>
       </section>
       <section>
@@ -78,7 +78,7 @@ const posts = (await getCollection('blog')).sort(
                   <span class="post-date">
                     <FormattedDate date={post.data.pubDate} />
                   </span>
-                  <a href={`/blog/${post.id}/`}>{post.data.title}</a>
+                  <a href={`/blog/${post.id}/`} data-umami-event="home-post-click" data-umami-event-title={post.data.title}>{post.data.title}</a>
                 </div>
                 <div class="description">{post.data.description}</div>
               </li>
