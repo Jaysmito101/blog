@@ -2,7 +2,7 @@ name: Sync Upstream
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # Runs every 6 hours
+    - cron: '0 0 */1 * *' 
   workflow_dispatch:      # Allows manual trigger
 
 jobs:
@@ -117,3 +117,4 @@ jobs:
           else
             echo "No updates from upstream. Exiting without commit."
           fi
+
