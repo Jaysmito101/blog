@@ -1,27 +1,90 @@
 ---
 import BaseHead from '../components/BaseHead.astro';
+import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
+import { getCollection, getEntry, render } from 'astro:content';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
+const projectsPage = await getEntry('projects', 'work-projects');
+
+const latestBlogs = (await getCollection('blog'))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3)
+  .map((post) => ({
+    title: post.data.title,
+    href: `/blog/${post.id}/`,
+  }));
+
+if (!projectsPage) {
+  throw new Error('Missing content entry: src/content/projects/work-projects.md');
+}
+
+const { Content } = await render(projectsPage);
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <BaseHead
-      title={`Projects | ${SITE_TITLE}`}
-      description={SITE_DESCRIPTION}
+      title={`${projectsPage.data.title} | ${SITE_TITLE}`}
+      description={projectsPage.data.description || SITE_DESCRIPTION}
     />
     <style>
       main {
         max-width: 900px;
+      }
+      .page-subtitle {
+        color: var(--blockquote-color);
+        margin-bottom: 1.5em;
+      }
+      .last-updated {
+        color: var(--blockquote-color);
+        font-size: 0.95em;
+        margin-bottom: 2em;
+      }
+      .technical-writing {
+        margin-top: 2.5em;
       }
     </style>
   </head>
   <body>
     <Header />
     <main>
-      <h1>Work, Projects and Publications</h1>
-      <p>Coming soon...</p>
+      <h1>{projectsPage.data.title}</h1>
+      <p class="page-subtitle">{projectsPage.data.description}</p>
+      {
+        projectsPage.data.updatedDate && (
+          <p class="last-updated">
+            Last updated on <FormattedDate date={projectsPage.data.updatedDate} />
+          </p>
+        )
+      }
+      <article>
+        <Content />
+      </article>
+      <section class="technical-writing">
+        <h2>Technical Writing</h2>
+        {
+          latestBlogs.length > 0 ? (
+            <p>
+              Recent posts include{' '}
+              {
+                latestBlogs.map((post, index) => (
+                  <>
+                    {index > 0 && (index === latestBlogs.length - 1 ? ' and ' : ', ')}
+                    <a href={post.href} data-umami-event="projects-latest-blog-click" data-umami-event-title={post.title}>
+                      {post.title}
+                    </a>
+                  </>
+                ))
+              }
+              .
+            </p>
+          ) : (
+            <p>New technical writing is coming soon.</p>
+          )
+        }
+      </section>
     </main>
   </body>
 </html>
