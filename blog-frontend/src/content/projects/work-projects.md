@@ -1,6 +1,5 @@
 ---
 title: "Work, Projects and Publications"
-description: "Professional experience, notable projects, and research publications in graphics, multimedia, and systems engineering."
 updatedDate: "2026-03-31"
 ---
 
