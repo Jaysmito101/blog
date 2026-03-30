@@ -1,11 +1,12 @@
 ---
 title: "Work, Projects and Publications"
+description: "My experience, notable projects, and research publications."
 updatedDate: "2026-03-31"
 ---
 
 ## Profile
 
-I build high-performance systems close to the hardware, with a focus on graphics, image processing, multimedia pipelines, and low-level optimization. My work combines systems programming, rendering, and production-grade tooling.
+I build high performance systems close to the hardware, with a focus on graphics, image processing, multimedia pipelines, and low-level optimization. My work combines systems programming, custom 2D/3D rendering engines, and production grade tooling.
 
 ## Notable Projects
 
