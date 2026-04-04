@@ -59,7 +59,7 @@ I can't answer it just yet, so let's just follow it blindly for now. In the futu
 
 Alright now, what about the noise function?
 
-Let's just try and use our [rand() function from the previous article](/blog/01-generating-random-numbers) and see how it looks.
+Let's just try and use our [rand() function from the previous article](01-generating-random-numbers) and see how it looks.
 
 ```c
 float noise(float x, float y)
