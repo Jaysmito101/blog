@@ -5,6 +5,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      base_path:
+        description: 'Base path for deployment (e.g., /blog). Leave empty for root deployment.'
+        required: false
+        default: '/blog'
 
 permissions:
   contents: read
@@ -39,6 +44,8 @@ jobs:
       - name: Build site
         working-directory: blog-frontend
         run: npm run build
+        env:
+          SITE_BASE_PATH: ${{ github.event.inputs.base_path || '/' }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
