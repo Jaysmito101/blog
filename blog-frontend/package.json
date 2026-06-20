@@ -10,10 +10,10 @@
     "format": "prettier --write \"src/**/*.{astro,js,jsx,ts,tsx,css,md}\""
   },
   "dependencies": {
-    "@astrojs/mdx": "^4.3.13",
+    "@astrojs/mdx": "^6.0.3",
     "@astrojs/rss": "^4.0.15",
     "@astrojs/sitemap": "^3.7.0",
-    "astro": "^5.17.1",
+    "astro": "^6.4.8",
     "sharp": "^0.34.3"
   },
   "devDependencies": {
