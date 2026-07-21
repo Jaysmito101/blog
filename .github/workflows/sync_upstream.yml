@@ -2,7 +2,7 @@ name: Sync Upstream
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # Runs every 6 hours
+    - cron: '0 0 */6 * *' # every 6 days
   workflow_dispatch:      # Allows manual trigger
 
 jobs:
